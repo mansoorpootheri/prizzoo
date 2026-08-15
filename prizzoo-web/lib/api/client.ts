@@ -23,18 +23,31 @@ interface AbpAjaxResponse<T> {
 
 export async function fetchJson<T>(
   path: string,
-  options: { method?: "GET" | "POST"; body?: unknown } = {}
+  options: {
+    method?: "GET" | "POST";
+    body?: unknown;
+    headers?: Record<string, string>;
+    // Registration must never carry a leftover Authorization token from a
+    // different logged-in session - ABP resolves tenancy from an
+    // authenticated session ahead of any Abp-TenantId header, which silently
+    // hijacks the request onto the wrong (or host) account.
+    skipAuth?: boolean;
+  } = {}
 ): Promise<T> {
-  const { method = "GET", body } = options;
-  const token = getToken();
+  const { method = "GET", body, headers, skipAuth = false } = options;
+  const token = skipAuth ? null : getToken();
+  const isFormData = body instanceof FormData;
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers: {
-      "Content-Type": "application/json",
+      // FormData sets its own multipart Content-Type (with boundary) - an
+      // explicit header here would override it and break the upload.
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...headers,
     },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: isFormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
   });
 
   let payload: AbpAjaxResponse<T>;
@@ -45,8 +58,14 @@ export async function fetchJson<T>(
   }
 
   if (!response.ok || !payload.success) {
+    // Plain MVC controllers (e.g. ImageController) return BadRequest(string)
+    // rather than a thrown exception - ABP still wraps it in this envelope,
+    // but the message lands under `result` (a string) instead of
+    // `error.message`, since only dynamic-API app-service methods get the
+    // exception-to-error-envelope conversion. Handle both shapes.
+    const fallbackMessage = typeof payload.result === "string" ? payload.result : undefined;
     throw new ApiError(
-      payload.error?.message ?? `Request failed with status ${response.status}`,
+      payload.error?.message ?? fallbackMessage ?? `Request failed with status ${response.status}`,
       payload.error?.details
     );
   }
