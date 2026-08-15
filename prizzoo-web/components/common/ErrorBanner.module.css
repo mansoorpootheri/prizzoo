@@ -1,0 +1,12 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 92, 92, 0.12);
+  border: 1px solid rgba(255, 92, 92, 0.4);
+  color: var(--color-danger);
+  font-size: 13px;
+  line-height: 1.4;
+}

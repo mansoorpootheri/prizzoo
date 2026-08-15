@@ -1,0 +1,108 @@
+﻿using Abp.Application.Editions;
+using Abp.Application.Features;
+using Abp.Auditing;
+using Abp.Authorization;
+using Abp.Authorization.Users;
+using Abp.DynamicEntityProperties;
+using Abp.EntityHistory;
+using Abp.Extensions;
+using Abp.Localization;
+using Abp.Notifications;
+using Abp.Organizations;
+using Abp.UI.Inputs;
+using Abp.Webhooks;
+using AutoMapper;
+using EnterpriseBase.Authorization.Accounts.Dto;
+using EnterpriseBase.Authorization.Delegation;
+using EnterpriseBase.Authorization.Roles;
+using EnterpriseBase.Authorization.Users;
+using EnterpriseBase.Editions;
+using EnterpriseBase.Editions.Dto;
+using EnterpriseBase.MultiTenancy;
+using EnterpriseBase.MultiTenancy.Dto;
+using EnterpriseBase.Sessions.Dto;
+using EnterpriseBase.Geography;
+using EnterpriseBase.Branches;
+using EnterpriseBase.Branches.Dto;
+using EnterpriseBase.Geography.Dto;
+using EnterpriseBase.Employees;
+using EnterpriseBase.Employees.Dto;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using EnterpriseBase.Application.Subscriptions.Dto;
+
+namespace EnterpriseBase
+{
+    internal static class CustomDtoMapper
+    {
+        public static void CreateMappings(IMapperConfigurationExpression configuration)
+        {
+            //Inputs
+            configuration.CreateMap<CheckboxInputType, FeatureInputTypeDto>();
+            configuration.CreateMap<SingleLineStringInputType, FeatureInputTypeDto>();
+            configuration.CreateMap<ComboboxInputType, FeatureInputTypeDto>();
+            configuration.CreateMap<IInputType, FeatureInputTypeDto>()
+                .Include<CheckboxInputType, FeatureInputTypeDto>()
+                .Include<SingleLineStringInputType, FeatureInputTypeDto>()
+                .Include<ComboboxInputType, FeatureInputTypeDto>();
+            configuration.CreateMap<StaticLocalizableComboboxItemSource, LocalizableComboboxItemSourceDto>();
+            configuration.CreateMap<ILocalizableComboboxItemSource, LocalizableComboboxItemSourceDto>()
+                .Include<StaticLocalizableComboboxItemSource, LocalizableComboboxItemSourceDto>();
+            configuration.CreateMap<LocalizableComboboxItem, LocalizableComboboxItemDto>();
+            configuration.CreateMap<ILocalizableComboboxItem, LocalizableComboboxItemDto>()
+                .Include<LocalizableComboboxItem, LocalizableComboboxItemDto>();
+
+
+            //Feature
+            configuration.CreateMap<FlatFeatureSelectDto, Feature>().ReverseMap();
+            configuration.CreateMap<Feature, FlatFeatureDto>();
+
+            //Branch
+            configuration.CreateMap<CreateBranchEditDto, Branch>().ReverseMap();
+            configuration.CreateMap<BranchDto, Branch>().ReverseMap();
+            configuration.CreateMap<BranchDto, CreateBranchEditDto>().ReverseMap();
+            configuration.CreateMap<Branch, BranchDto>().ReverseMap();
+            configuration.CreateMap<Branch, CreateBranchEditDto>();           
+            //Geography
+            configuration.CreateMap<Country, CountryDto>().ReverseMap();
+            configuration.CreateMap<CreateCountryDto, Country>();
+            configuration.CreateMap<UpdateCountryDto, Country>();
+            configuration.CreateMap<UpdateCountryDto, CountryDto>().ReverseMap();
+
+            configuration.CreateMap<State, StateDto>()
+                .ForMember(dest => dest.CountryName, opt => opt.MapFrom(src => src.Country.CountryName));
+            configuration.CreateMap<CreateStateDto, State>();
+            configuration.CreateMap<UpdateStateDto, State>();
+            configuration.CreateMap<UpdateStateDto, StateDto>().ReverseMap();
+
+            configuration.CreateMap<District, DistrictDto>()
+                .ForMember(dest => dest.StateName, opt => opt.MapFrom(src => src.State.StateName))
+                .ForMember(dest => dest.CountryName, opt => opt.MapFrom(src => src.State.Country.CountryName));
+            configuration.CreateMap<CreateDistrictDto, District>();
+            configuration.CreateMap<UpdateDistrictDto, District>();
+            configuration.CreateMap<UpdateDistrictDto, DistrictDto>().ReverseMap();           
+
+            //EmployeeType
+            configuration.CreateMap<CreateEmployeeTypeEditDto, EmployeeType>().ReverseMap();
+            configuration.CreateMap<EmployeeTypeDto, EmployeeType>().ReverseMap();
+            configuration.CreateMap<EmployeeTypeDto, CreateEmployeeTypeEditDto>();
+
+            //Employee
+            configuration.CreateMap<CreateEmployeeEditDto, Employee>().ReverseMap();
+            configuration.CreateMap<EmployeeDto, Employee>().ReverseMap();
+            configuration.CreateMap<EmployeeDto, CreateEmployeeEditDto>();
+            configuration.CreateMap<Employee, EmployeeDto>()
+                .ForMember(dest => dest.EmployeeTypeName, opt => opt.MapFrom(src => src.EmployeeType != null ? src.EmployeeType.Name : null))
+                .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch != null ? src.Branch.BranchName : null));
+
+            //Subscription
+            configuration.CreateMap<Edition, EditionInfoDto>();
+
+            // Prizzoo catalog mappings - see EnterpriseBase.Application.Stores /
+            // .Pricing / .MasterData.Products for the Dto folders. Add
+            // CreateMap entries here as those AppServices/Dtos are built out;
+            // left empty deliberately since the Dto shapes weren't defined as
+            // part of this migration pass - see DOCS/PRIZZOO_MIGRATION_NOTES.md.
+        }
+    }
+}
