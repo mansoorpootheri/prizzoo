@@ -112,6 +112,10 @@ public class EnterpriseBaseAuthorizationProvider : AuthorizationProvider
 
         // Prizzoo: Price moderation
         context.CreatePermission(PermissionNames.Pages_PriceModeration, L("PriceModeration"), multiTenancySides: MultiTenancySides.Host);
+
+        // Prizzoo: Retailer self-service
+        context.CreatePermission(PermissionNames.Pages_Retailer, L("Retailer"), multiTenancySides: MultiTenancySides.Tenant);
+        context.CreatePermission(PermissionNames.Pages_RetailerModeration, L("RetailerModeration"), multiTenancySides: MultiTenancySides.Tenant);
     }
 
     private static ILocalizableString L(string name)

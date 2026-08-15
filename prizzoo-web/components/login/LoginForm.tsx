@@ -71,6 +71,11 @@ export function LoginForm() {
       </form>
 
       <p className={styles.footer}>
+        Don&apos;t have an account?{" "}
+        <a className={styles.footerLink} href="/register">
+          Create one
+        </a>
+        <br />
         By continuing you agree to our{" "}
         <a className={styles.footerLink} href="#">
           Terms of service

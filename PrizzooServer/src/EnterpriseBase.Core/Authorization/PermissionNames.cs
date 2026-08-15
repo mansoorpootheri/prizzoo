@@ -101,5 +101,9 @@ namespace EnterpriseBase.Authorization
 
         // Prizzoo: Price moderation
         public const string Pages_PriceModeration = "Pages.PriceModeration";
+
+        // Prizzoo: Retailer self-service
+        public const string Pages_Retailer = "Pages.Retailer";
+        public const string Pages_RetailerModeration = "Pages.RetailerModeration";
     }
 }

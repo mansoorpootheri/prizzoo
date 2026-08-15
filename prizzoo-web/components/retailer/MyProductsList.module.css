@@ -1,0 +1,100 @@
+.root {
+  composes: appShell from global;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 20px 32px;
+  gap: 16px;
+}
+
+.back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--color-foreground-muted);
+  font-size: 12px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.heading {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-foreground);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.thumb {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+.meta {
+  font-size: 11px;
+  color: var(--color-foreground-muted);
+}
+
+.badge {
+  flex-shrink: 0;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badgeLive {
+  composes: badge;
+  background: rgba(0, 219, 116, 0.15);
+  color: var(--color-accent);
+}
+
+.badgePending {
+  composes: badge;
+  background: rgba(255, 200, 80, 0.15);
+  color: #ffc850;
+}
+
+.addLink {
+  display: inline-block;
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: #04140c;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}

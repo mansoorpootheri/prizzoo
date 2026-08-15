@@ -30,6 +30,7 @@ public class TenantRoleAndUserBuilder
         new DefaultBranchCreator(_context, _tenantId).Create();
         new DefaultEmployeeTypesCreator(_context, _tenantId).Create();
         SeedAdminUserBranchMapping();
+        CreateRetailerRole();
     }
 
     private void CreateRolesAndUsers()
@@ -98,6 +99,44 @@ public class TenantRoleAndUserBuilder
 
             // Assign Admin role to admin user
             _context.UserRoles.Add(new UserRole(_tenantId, adminUser.Id, adminRole.Id));
+            _context.SaveChanges();
+        }
+    }
+
+    private void CreateRetailerRole()
+    {
+        // Not IsDefault: role assignment happens at retailer-application
+        // approval time (RetailerAppService.ApproveApplicationAsync), not at
+        // registration - IsDefault would hand this role to every self-registered
+        // shopper too.
+        var retailerRole = _context.Roles.IgnoreQueryFilters().FirstOrDefault(r => r.TenantId == _tenantId && r.Name == StaticRoleNames.Tenants.Retailer);
+        if (retailerRole == null)
+        {
+            retailerRole = _context.Roles.Add(new Role(_tenantId, StaticRoleNames.Tenants.Retailer, StaticRoleNames.Tenants.Retailer) { IsStatic = true }).Entity;
+            _context.SaveChanges();
+        }
+
+        var grantedPermissions = _context.Permissions.IgnoreQueryFilters()
+            .OfType<RolePermissionSetting>()
+            .Where(p => p.TenantId == _tenantId && p.RoleId == retailerRole.Id)
+            .Select(p => p.Name)
+            .ToList();
+
+        var toGrant = new[] { PermissionNames.Pages_Retailer }
+            .Where(name => !grantedPermissions.Contains(name))
+            .ToList();
+
+        if (toGrant.Any())
+        {
+            _context.Permissions.AddRange(
+                toGrant.Select(name => new RolePermissionSetting
+                {
+                    TenantId = _tenantId,
+                    Name = name,
+                    IsGranted = true,
+                    RoleId = retailerRole.Id
+                })
+            );
             _context.SaveChanges();
         }
     }
