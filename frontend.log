@@ -1,0 +1,115 @@
+
+> prizzoo-web@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.8:3000
+- Environments: .env.local
+✓ Ready in 17.2s
+✓ Running next.config.ts took 183ms
+
+ GET /home 200 in 2.7s (next.js: 2.2s, application-code: 561ms)
+ GET /product/Mi%20Power%20Bank%2010000mAh 200 in 3.5s (next.js: 3.3s, application-code: 213ms)
+ GET /product/Mi%20Power%20Bank%2010000mAh 200 in 3.5s (next.js: 3.2s, application-code: 234ms)
+ GET /product/Mi%20Power%20Bank%2010000mAh 200 in 217ms (next.js: 42ms, application-code: 175ms)
+✓ Compiled in 118ms
+ GET /home 200 in 119ms (next.js: 39ms, application-code: 80ms)
+✓ Compiled in 58ms
+ GET /home 200 in 58ms (next.js: 18ms, application-code: 39ms)
+✓ Compiled in 118ms
+ GET /home 200 in 62ms (next.js: 13ms, application-code: 49ms)
+✓ Compiled in 51ms
+ GET /home 200 in 42ms (next.js: 10ms, application-code: 32ms)
+ GET /home 200 in 34ms (next.js: 9ms, application-code: 25ms)
+✓ Compiled in 81ms
+ GET /home 200 in 79ms (next.js: 22ms, application-code: 57ms)
+✓ Compiled in 47ms
+ GET /home 200 in 269ms (next.js: 27ms, application-code: 242ms)
+ GET /home 200 in 165ms (next.js: 15ms, application-code: 151ms)
+ GET /home 200 in 180ms (next.js: 26ms, application-code: 155ms)
+✓ Compiled in 99ms
+ GET /home 200 in 50ms (next.js: 21ms, application-code: 29ms)
+✓ Compiled in 45ms
+ GET /home 200 in 54ms (next.js: 11ms, application-code: 43ms)
+✓ Compiled in 55ms
+ GET /home 200 in 56ms (next.js: 13ms, application-code: 43ms)
+✓ Compiled in 25ms
+ GET /home 200 in 58ms (next.js: 12ms, application-code: 46ms)
+ GET /home 200 in 69ms (next.js: 9ms, application-code: 61ms)
+ GET /home 200 in 138ms (next.js: 13ms, application-code: 125ms)
+ GET /home 200 in 129ms (next.js: 9ms, application-code: 120ms)
+ GET /home 200 in 151ms (next.js: 33ms, application-code: 118ms)
+✓ Compiled in 158ms
+ GET /home 200 in 57ms (next.js: 14ms, application-code: 43ms)
+✓ Compiled in 284ms
+ GET /home 200 in 50ms (next.js: 11ms, application-code: 39ms)
+✓ Compiled in 50ms
+ GET /home 200 in 72ms (next.js: 15ms, application-code: 56ms)
+✓ Compiled in 215ms
+ GET /home 200 in 55ms (next.js: 12ms, application-code: 43ms)
+✓ Compiled in 88ms
+ GET /home 200 in 80ms (next.js: 20ms, application-code: 60ms)
+ GET / 200 in 105ms (next.js: 57ms, application-code: 48ms)
+ GET /home 200 in 123ms (next.js: 9ms, application-code: 113ms)
+ GET /home 200 in 80ms (next.js: 13ms, application-code: 68ms)
+✓ Compiled in 75ms
+ GET /home 200 in 65ms (next.js: 24ms, application-code: 41ms)
+ GET /home 200 in 35ms (next.js: 6ms, application-code: 29ms)
+ GET /home 200 in 79ms (next.js: 22ms, application-code: 58ms)
+ GET /home 200 in 142ms (next.js: 13ms, application-code: 129ms)
+ GET /home 200 in 138ms (next.js: 11ms, application-code: 127ms)
+✓ Compiled in 168ms
+ GET /home 200 in 77ms (next.js: 14ms, application-code: 64ms)
+✓ Compiled in 252ms
+ GET /home 200 in 34ms (next.js: 10ms, application-code: 24ms)
+✓ Compiled in 84ms
+ GET /home 200 in 60ms (next.js: 17ms, application-code: 43ms)
+✓ Compiled in 63ms
+ GET /home 200 in 74ms (next.js: 22ms, application-code: 51ms)
+✓ Compiled in 291ms
+ GET /home 200 in 157ms (next.js: 20ms, application-code: 137ms)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 182ms
+ GET /home 200 in 92ms (next.js: 11ms, application-code: 81ms)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 68ms
+ GET /home 200 in 114ms (next.js: 12ms, application-code: 102ms)
+ GET /home 200 in 92ms (next.js: 9ms, application-code: 83ms)
+ GET /home 200 in 70ms (next.js: 7ms, application-code: 64ms)
+ GET /home 200 in 35ms (next.js: 8ms, application-code: 27ms)
+ GET /home 200 in 29ms (next.js: 6ms, application-code: 23ms)
+✓ Compiled in 60ms
+ GET /home 200 in 65ms (next.js: 9ms, application-code: 55ms)
+ GET /home 200 in 96ms (next.js: 5ms, application-code: 90ms)
+✓ Compiled in 34ms
+ GET /home 200 in 26ms (next.js: 9ms, application-code: 17ms)
+ GET /home 200 in 30ms (next.js: 6ms, application-code: 24ms)
+✓ Compiled in 53ms
+ GET /home 200 in 41ms (next.js: 3ms, application-code: 38ms)
+ GET /home 200 in 28ms (next.js: 1.9ms, application-code: 26ms)
+✓ Compiled in 41ms
+ GET /home 200 in 52ms (next.js: 8ms, application-code: 44ms)
+ GET /home 200 in 26ms (next.js: 8ms, application-code: 18ms)
+✓ Compiled in 20ms
+ GET /home 200 in 31ms (next.js: 7ms, application-code: 24ms)
+✓ Compiled in 74ms
+ GET /home 200 in 38ms (next.js: 4ms, application-code: 35ms)
+ GET /home 200 in 83ms (next.js: 5ms, application-code: 79ms)
+ GET /home 200 in 81ms (next.js: 4ms, application-code: 77ms)
+✓ Compiled in 47ms
+✓ Compiled in 44ms
+ GET /home 200 in 80ms (next.js: 8ms, application-code: 72ms)
+ GET /product/Mi%20Power%20Bank%2010000mAh 200 in 87ms (next.js: 45ms, application-code: 41ms)
+ GET /home 200 in 90ms (next.js: 4ms, application-code: 86ms)
+ GET /product/head%20set 200 in 71ms (next.js: 21ms, application-code: 50ms)
+ GET /product/bottle 200 in 100ms (next.js: 42ms, application-code: 58ms)
+ GET /home 200 in 67ms (next.js: 5ms, application-code: 62ms)
+ GET /phone-entry 200 in 144ms (next.js: 96ms, application-code: 48ms)
+ GET /phone-entry 200 in 54ms (next.js: 11ms, application-code: 43ms)
+ GET / 200 in 61ms (next.js: 8ms, application-code: 53ms)
+ GET / 200 in 72ms (next.js: 4ms, application-code: 67ms)
+ GET /phone-entry 200 in 37ms (next.js: 6ms, application-code: 31ms)
+ GET /phone-entry 200 in 79ms (next.js: 5ms, application-code: 74ms)
+ GET /otp-verify?phone=9847055857 200 in 78ms (next.js: 49ms, application-code: 28ms)
+ GET /home 200 in 45ms (next.js: 9ms, application-code: 36ms)

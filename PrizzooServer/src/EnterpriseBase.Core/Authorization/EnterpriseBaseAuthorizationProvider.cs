@@ -89,9 +89,13 @@ public class EnterpriseBaseAuthorizationProvider : AuthorizationProvider
         context.CreatePermission(PermissionNames.Pages_Administration_Host_Dashboard, L("Dashboard"), multiTenancySides: MultiTenancySides.Host);
 
         // Prizzoo: Products / catalog
-        var products = context.CreatePermission(PermissionNames.Pages_Products, L("Products"), multiTenancySides: MultiTenancySides.Host);
+        // Pages_Products (read/list) and Pages_Products_Edit are also granted
+        // to Tenant so the tenant Admin (admin@Default.com) can moderate
+        // pending products from the same login used for retailer-application
+        // moderation. Create/Delete deliberately stay Host-only.
+        var products = context.CreatePermission(PermissionNames.Pages_Products, L("Products"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
         products.CreateChildPermission(PermissionNames.Pages_Products_Create, L("CreateProducts"), multiTenancySides: MultiTenancySides.Host);
-        products.CreateChildPermission(PermissionNames.Pages_Products_Edit, L("EditProducts"), multiTenancySides: MultiTenancySides.Host);
+        products.CreateChildPermission(PermissionNames.Pages_Products_Edit, L("EditProducts"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
         products.CreateChildPermission(PermissionNames.Pages_Products_Delete, L("DeleteProducts"), multiTenancySides: MultiTenancySides.Host);
 
         var categories = products.CreateChildPermission(PermissionNames.Pages_Products_Categories, L("Categories"), multiTenancySides: MultiTenancySides.Host);
@@ -110,12 +114,23 @@ public class EnterpriseBaseAuthorizationProvider : AuthorizationProvider
         stores.CreateChildPermission(PermissionNames.Pages_Stores_Edit, L("EditStores"), multiTenancySides: MultiTenancySides.Host);
         stores.CreateChildPermission(PermissionNames.Pages_Stores_Delete, L("DeleteStores"), multiTenancySides: MultiTenancySides.Host);
 
-        // Prizzoo: Price moderation
-        context.CreatePermission(PermissionNames.Pages_PriceModeration, L("PriceModeration"), multiTenancySides: MultiTenancySides.Host);
+        // Prizzoo: Location master data (District already has its own
+        // Pages_Geography_Districts CRUD, seeded/registered below)
+        var locations = context.CreatePermission(PermissionNames.Pages_Locations, L("Locations"), multiTenancySides: MultiTenancySides.Host);
+        locations.CreateChildPermission(PermissionNames.Pages_Locations_Create, L("CreateLocations"), multiTenancySides: MultiTenancySides.Host);
+        locations.CreateChildPermission(PermissionNames.Pages_Locations_Edit, L("EditLocations"), multiTenancySides: MultiTenancySides.Host);
+        locations.CreateChildPermission(PermissionNames.Pages_Locations_Delete, L("DeleteLocations"), multiTenancySides: MultiTenancySides.Host);
 
-        // Prizzoo: Retailer self-service
-        context.CreatePermission(PermissionNames.Pages_Retailer, L("Retailer"), multiTenancySides: MultiTenancySides.Tenant);
-        context.CreatePermission(PermissionNames.Pages_RetailerModeration, L("RetailerModeration"), multiTenancySides: MultiTenancySides.Tenant);
+        // Prizzoo: Price moderation
+        // Also granted to Tenant so admin@Default.com can moderate prices
+        // from the same login as retailer-application/product moderation.
+        context.CreatePermission(PermissionNames.Pages_PriceModeration, L("PriceModeration"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
+
+        // Prizzoo: shop owner portal (host-admin-provisioned, no self-service signup)
+        context.CreatePermission(PermissionNames.Pages_ShopOwner, L("ShopOwner"), multiTenancySides: MultiTenancySides.Tenant);
+
+        // Prizzoo: OTP-verified shopper browsing
+        context.CreatePermission(PermissionNames.Pages_Shopper, L("Shopper"), multiTenancySides: MultiTenancySides.Tenant);
     }
 
     private static ILocalizableString L(string name)

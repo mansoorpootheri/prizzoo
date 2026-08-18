@@ -2,7 +2,8 @@ using Abp.Application.Services;
 using Abp.Authorization;
 using Abp.Domain.Repositories;
 using EnterpriseBase.Application.Pricing.Dto;
-using Microsoft.AspNetCore.Authorization;
+using EnterpriseBase.Authorization;
+using EnterpriseBase.MasterData;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -14,14 +15,27 @@ namespace EnterpriseBase.Application.Pricing
     public interface IPriceCompareAppService : IApplicationService
     {
         Task<List<StorePriceResultDto>> ComparePricesAsync(ComparePricesInputDto input);
+
+        /// <summary>Active category names for the home page's browse chips - real catalog data, not a hardcoded list.</summary>
+        Task<List<string>> GetActiveCategoriesAsync();
+
+        /// <summary>
+        /// The home screen's default, no-search-needed product listing:
+        /// a "Top Picks for You" row plus one row per catalog category,
+        /// each populated from real nearby approved prices.
+        /// </summary>
+        Task<List<HomeFeedSectionDto>> GetHomeFeedAsync(HomeFeedInputDto input);
     }
 
     /// <summary>
     /// THE core shopper-facing service: search a product, see it ranked by
-    /// price across nearby stores. Deliberately [AllowAnonymous] - a shopper
-    /// should never need to log in just to compare prices. See
-    /// DOCS/PRIZZOO_MIGRATION_NOTES.md for the reasoning behind keeping this
-    /// as its own anonymous service rather than folding it into ProductAppService.
+    /// price across nearby stores.
+    ///
+    /// DELIBERATE REVERSAL: this used to be [AllowAnonymous] (no login
+    /// required). The product now requires phone+OTP verification before any
+    /// browsing, so this is gated to the OTP-verified Shopper role instead -
+    /// see OtpAuthController for how that role is granted. This is a
+    /// breaking change for any existing anonymous caller.
     ///
     /// PERFORMANCE NOTE: this MVP implementation does a rough SQL bounding-box
     /// pre-filter then computes exact Haversine distance in C#. That is fine
@@ -31,7 +45,7 @@ namespace EnterpriseBase.Application.Pricing
     /// the filtering, not the app server. See the India-market business plan,
     /// section 5/9, for when that upgrade is expected to matter.
     /// </summary>
-    [AllowAnonymous]
+    [AbpAuthorize(PermissionNames.Pages_Shopper)]
     public class PriceCompareAppService : ApplicationService, IPriceCompareAppService
     {
         // Prices older than this are still shown, but flagged IsStale so the
@@ -40,63 +54,199 @@ namespace EnterpriseBase.Application.Pricing
         private static readonly TimeSpan FreshnessThreshold = TimeSpan.FromDays(7);
 
         private readonly IRepository<EnterpriseBase.Pricing.Price, Guid> _priceRepository;
+        private readonly IRepository<Category, Guid> _categoryRepository;
+        private readonly IRepository<EnterpriseBase.Pricing.ProductRating, Guid> _ratingRepository;
 
-        public PriceCompareAppService(IRepository<EnterpriseBase.Pricing.Price, Guid> priceRepository)
+        public PriceCompareAppService(
+            IRepository<EnterpriseBase.Pricing.Price, Guid> priceRepository,
+            IRepository<Category, Guid> categoryRepository,
+            IRepository<EnterpriseBase.Pricing.ProductRating, Guid> ratingRepository)
         {
             _priceRepository = priceRepository;
+            _categoryRepository = categoryRepository;
+            _ratingRepository = ratingRepository;
+        }
+
+        public virtual async Task<List<string>> GetActiveCategoriesAsync()
+        {
+            return await _categoryRepository.GetAll()
+                .Where(x => x.IsActive)
+                .OrderBy(x => x.Name)
+                .Select(x => x.Name)
+                .ToListAsync();
         }
 
         public virtual async Task<List<StorePriceResultDto>> ComparePricesAsync(ComparePricesInputDto input)
         {
-            // Rough bounding box in degrees - ~1 degree of latitude is ~111km.
-            // Deliberately generous; exact filtering happens below in C#.
-            var latDelta = (decimal)(input.RadiusKm / 111.0);
-            var lonDelta = (decimal)(input.RadiusKm / (111.0 * Math.Cos(ToRadians((double)input.Latitude))));
-
-            var minLat = input.Latitude - latDelta;
-            var maxLat = input.Latitude + latDelta;
-            var minLon = input.Longitude - lonDelta;
-            var maxLon = input.Longitude + lonDelta;
-
-            var keyword = input.ProductKeyword.ToLower();
-
-            var candidates = await _priceRepository.GetAll()
-                .Include(x => x.Product)
-                .Include(x => x.Store)
-                .Where(x => x.Status == EnterpriseBase.Pricing.PriceStatus.Approved)
-                .Where(x => x.Store.IsActive)
-                .Where(x => x.Product.IsActive)
-                .Where(x => x.Product.Name.ToLower().Contains(keyword))
-                .Where(x => x.Store.Latitude >= minLat && x.Store.Latitude <= maxLat)
-                .Where(x => x.Store.Longitude >= minLon && x.Store.Longitude <= maxLon)
-                .ToListAsync();
-
-            var now = DateTime.UtcNow;
-
-            var results = candidates
-                .Select(x => new StorePriceResultDto
+            var candidates = await GetCandidatesInBoundingBoxAsync(input.Latitude, input.Longitude, input.RadiusKm,
+                query =>
                 {
-                    PriceId      = x.Id,
-                    ProductId    = x.ProductId,
-                    ProductName  = x.Product.Name,
-                    StoreId      = x.StoreId,
-                    StoreName    = x.Store.Name,
-                    StoreAddress = x.Store.Address,
-                    Latitude     = x.Store.Latitude,
-                    Longitude    = x.Store.Longitude,
-                    DistanceKm   = HaversineKm(input.Latitude, input.Longitude, x.Store.Latitude, x.Store.Longitude),
-                    Amount       = x.Amount,
-                    Currency     = x.Currency,
-                    ObservedAt   = x.ObservedAt,
-                    IsStale      = now - x.ObservedAt > FreshnessThreshold,
-                })
+                    if (!string.IsNullOrWhiteSpace(input.ProductKeyword))
+                    {
+                        var keyword = input.ProductKeyword.ToLower();
+                        query = query.Where(x => x.Product.Name.ToLower().Contains(keyword));
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(input.CategoryName))
+                    {
+                        var categoryName = input.CategoryName.ToLower();
+                        query = query.Where(x => x.Product.Category != null && x.Product.Category.Name.ToLower() == categoryName);
+                    }
+
+                    if (input.StoreId.HasValue)
+                    {
+                        query = query.Where(x => x.StoreId == input.StoreId.Value);
+                    }
+
+                    return query;
+                });
+
+            var results = await BuildResultDtosAsync(candidates, input.Latitude, input.Longitude);
+
+            return results
                 .Where(x => x.DistanceKm <= input.RadiusKm)
                 .OrderBy(x => x.Amount)
                 .ThenBy(x => x.DistanceKm)
                 .Take(input.MaxResults)
                 .ToList();
+        }
 
-            return results;
+        public virtual async Task<List<HomeFeedSectionDto>> GetHomeFeedAsync(HomeFeedInputDto input)
+        {
+            const int itemsPerSection = 10;
+
+            var candidates = await GetCandidatesInBoundingBoxAsync(input.Latitude, input.Longitude, input.RadiusKm);
+            var allResults = (await BuildResultDtosAsync(candidates, input.Latitude, input.Longitude))
+                .Where(x => x.DistanceKm <= input.RadiusKm)
+                .ToList();
+
+            // One card per product on the home feed (unlike search results,
+            // which intentionally show every store) - the cheapest nearby
+            // store wins the card; tapping it still leads to the full
+            // per-store comparison via ComparePricesAsync.
+            var cheapestPerProduct = allResults
+                .GroupBy(x => x.ProductId)
+                .Select(g => g.OrderBy(x => x.Amount).First())
+                .ToList();
+
+            var categoryNameByProduct = candidates
+                .GroupBy(x => x.ProductId)
+                .ToDictionary(g => g.Key, g => g.First().Product.Category?.Name);
+
+            var sections = new List<HomeFeedSectionDto>();
+
+            var topPicks = cheapestPerProduct
+                .OrderByDescending(x => x.AverageRating ?? 0)
+                .ThenByDescending(x => x.ObservedAt)
+                .Take(itemsPerSection)
+                .ToList();
+            if (topPicks.Count > 0)
+            {
+                sections.Add(new HomeFeedSectionDto
+                {
+                    Title = "Top Picks for You",
+                    Items = topPicks,
+                });
+            }
+
+            var categoryGroups = cheapestPerProduct
+                .Select(x => new { Item = x, CategoryName = categoryNameByProduct.GetValueOrDefault(x.ProductId) })
+                .Where(x => !string.IsNullOrEmpty(x.CategoryName))
+                .GroupBy(x => x.CategoryName)
+                .OrderBy(g => g.Key);
+
+            foreach (var group in categoryGroups)
+            {
+                sections.Add(new HomeFeedSectionDto
+                {
+                    Title = group.Key,
+                    Items = group
+                        .Select(x => x.Item)
+                        .OrderByDescending(x => x.ObservedAt)
+                        .Take(itemsPerSection)
+                        .ToList(),
+                });
+            }
+
+            return sections;
+        }
+
+        private async Task<List<EnterpriseBase.Pricing.Price>> GetCandidatesInBoundingBoxAsync(
+            decimal latitude,
+            decimal longitude,
+            double radiusKm,
+            Func<IQueryable<EnterpriseBase.Pricing.Price>, IQueryable<EnterpriseBase.Pricing.Price>> extraFilter = null)
+        {
+            // Rough bounding box in degrees - ~1 degree of latitude is ~111km.
+            // Deliberately generous; exact filtering happens after this in C#.
+            var latDelta = (decimal)(radiusKm / 111.0);
+            var lonDelta = (decimal)(radiusKm / (111.0 * Math.Cos(ToRadians((double)latitude))));
+
+            var minLat = latitude - latDelta;
+            var maxLat = latitude + latDelta;
+            var minLon = longitude - lonDelta;
+            var maxLon = longitude + lonDelta;
+
+            var query = _priceRepository.GetAll()
+                .Include(x => x.Product).ThenInclude(p => p.Category)
+                .Include(x => x.Store)
+                .Where(x => x.Status == EnterpriseBase.Pricing.PriceStatus.Approved)
+                .Where(x => x.Store.IsActive)
+                .Where(x => x.Product.IsActive)
+                .Where(x => x.Store.Latitude >= minLat && x.Store.Latitude <= maxLat)
+                .Where(x => x.Store.Longitude >= minLon && x.Store.Longitude <= maxLon);
+
+            if (extraFilter != null)
+                query = extraFilter(query);
+
+            return await query.ToListAsync();
+        }
+
+        private async Task<List<StorePriceResultDto>> BuildResultDtosAsync(
+            List<EnterpriseBase.Pricing.Price> candidates, decimal latitude, decimal longitude)
+        {
+            var now = DateTime.UtcNow;
+
+            var productIds = candidates.Select(x => x.ProductId).Distinct().ToList();
+            var ratingsByProduct = (await _ratingRepository.GetAll()
+                    .Where(x => productIds.Contains(x.ProductId))
+                    .Select(x => new { x.ProductId, x.Stars })
+                    .ToListAsync())
+                .GroupBy(x => x.ProductId)
+                .ToDictionary(g => g.Key, g => (Average: g.Average(x => x.Stars), Count: g.Count()));
+
+            return candidates
+                .Select(x =>
+                {
+                    ratingsByProduct.TryGetValue(x.ProductId, out var rating);
+                    var discountPercent = x.OriginalAmount.HasValue && x.OriginalAmount.Value > x.Amount
+                        ? (int?)Math.Round((1 - (x.Amount / x.OriginalAmount.Value)) * 100)
+                        : null;
+
+                    return new StorePriceResultDto
+                    {
+                        PriceId         = x.Id,
+                        ProductId       = x.ProductId,
+                        ProductName     = x.Product.Name,
+                        ProductImageId  = x.Product.ImageId,
+                        StoreId         = x.StoreId,
+                        StoreName       = x.Store.Name,
+                        StoreImageId    = x.Store.ImageId,
+                        StoreAddress    = x.Store.Address,
+                        Latitude        = x.Store.Latitude,
+                        Longitude       = x.Store.Longitude,
+                        DistanceKm      = HaversineKm(latitude, longitude, x.Store.Latitude, x.Store.Longitude),
+                        Amount          = x.Amount,
+                        OriginalAmount  = x.OriginalAmount,
+                        DiscountPercent = discountPercent,
+                        Currency        = x.Currency,
+                        ObservedAt      = x.ObservedAt,
+                        IsStale         = now - x.ObservedAt > FreshnessThreshold,
+                        AverageRating   = rating.Count > 0 ? rating.Average : (double?)null,
+                        RatingCount     = rating.Count,
+                    };
+                })
+                .ToList();
         }
 
         private static double HaversineKm(decimal lat1, decimal lon1, decimal lat2, decimal lon2)

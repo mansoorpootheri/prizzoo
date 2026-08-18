@@ -24,7 +24,11 @@ interface AbpAjaxResponse<T> {
 export async function fetchJson<T>(
   path: string,
   options: {
-    method?: "GET" | "POST";
+    // ABP's dynamic-API convention derives HTTP method from the app-service
+    // method name prefix: Get*->GET, Create*/Insert*->POST, Update*->PUT,
+    // Delete*->DELETE. Confirmed empirically: Product/Update returns 405 for
+    // POST, 200 for PUT.
+    method?: "GET" | "POST" | "PUT" | "DELETE";
     body?: unknown;
     headers?: Record<string, string>;
     // Registration must never carry a leftover Authorization token from a

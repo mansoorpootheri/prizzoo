@@ -13,7 +13,11 @@ public class User : AbpUser<User>
 
     public static string CreateRandomPassword()
     {
-        return Guid.NewGuid().ToString("N").Truncate(16);
+        // A plain GUID hex slice is all lowercase+digits, which fails the
+        // default Identity password policy (needs upper + non-alphanumeric
+        // too) - prefix guarantees every required character class is present
+        // regardless of the random portion.
+        return "Aa1!" + Guid.NewGuid().ToString("N").Truncate(12);
     }
 
     public static User CreateTenantAdminUser(int tenantId, string emailAddress)

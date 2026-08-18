@@ -50,5 +50,15 @@ namespace EnterpriseBase
 
         public static TimeSpan AccessTokenExpiration = TimeSpan.FromDays(1);
         public static TimeSpan RefreshTokenExpiration = TimeSpan.FromDays(365);
+
+        /// <summary>
+        /// Shopper OTP sessions deliberately outlive the 1-day Admin/ShopOwner
+        /// token (see EnterpriseBaseWebCoreModule.ConfigureTokenAuth) - a
+        /// shopper should stay logged in across app visits until they
+        /// actually log out, not be forced to re-verify their phone number
+        /// every day. There's no refresh-token flow for shoppers, so this
+        /// TimeSpan is the JWT's entire lifetime.
+        /// </summary>
+        public static TimeSpan ShopperAccessTokenExpiration = TimeSpan.FromDays(30);
     }
 }

@@ -15,6 +15,15 @@
   cursor: pointer;
 }
 
+.thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+  margin-bottom: 12px;
+}
+
 .title {
   font-size: 18px;
   font-weight: 700;

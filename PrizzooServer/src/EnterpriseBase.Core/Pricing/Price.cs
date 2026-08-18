@@ -47,6 +47,16 @@ namespace EnterpriseBase.Pricing
         [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
 
+        /// <summary>
+        /// The MRP/original price before any discount, if the submitter
+        /// provided one. Nullable - most submissions won't have a known
+        /// "original" price. Only meaningful when greater than Amount; the
+        /// discount percentage shown to shoppers is derived from these two
+        /// fields, never stored separately.
+        /// </summary>
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? OriginalAmount { get; set; }
+
         [Column(TypeName = "char(3)")]
         public string Currency { get; set; } = "INR";
 

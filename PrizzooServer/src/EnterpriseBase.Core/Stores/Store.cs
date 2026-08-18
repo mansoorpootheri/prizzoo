@@ -1,5 +1,6 @@
 using Abp.Domain.Entities;
 using Abp.Domain.Entities.Auditing;
+using EnterpriseBase.MasterData;
 using EnterpriseBase.Storage;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -43,8 +44,24 @@ namespace EnterpriseBase.Stores
         [MaxLength(500)]
         public string Address { get; set; }
 
+        /// <summary>
+        /// Denormalized display copy of Location.City.Name, kept in sync by
+        /// StoreAppService whenever LocationId is set - existing filtering/
+        /// display code (PagedStoreRequestDto.City, StoreDto.City) keeps
+        /// working unchanged. LocationId is the source of truth going
+        /// forward; this string is a convenience read, not authoritative.
+        /// </summary>
         [MaxLength(100)]
         public string City { get; set; }
+
+        /// <summary>
+        /// The specific locality within City, e.g. "Feroke" within
+        /// "Calicut". Nullable so existing free-text-only stores (created
+        /// before this field existed) remain valid.
+        /// </summary>
+        public Guid? LocationId { get; set; }
+        [ForeignKey("LocationId")]
+        public virtual Location Location { get; set; }
 
         [Phone]
         [MaxLength(30)]

@@ -8,12 +8,20 @@ import {
   useState,
 } from "react";
 import { authenticate } from "../api/auth";
+import { verifyOtp } from "../api/otpAuth";
 import { clearToken, getToken, setToken } from "./token-storage";
 
 interface AuthContextValue {
   isAuthenticated: boolean;
   isReady: boolean;
+  // Password login - host Admin and ShopOwner only, reached via the
+  // "Login to admin panel" link.
   login: (userNameOrEmailAddress: string, password: string) => Promise<void>;
+  // Phone+OTP login - the only way a shopper authenticates. Both paths
+  // write to the same single token slot: logging into one role's session
+  // replaces the other in the same browser (no parallel dual-session
+  // storage for this pass).
+  loginWithOtp: (phoneNumber: string, code: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -41,13 +49,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const loginWithOtp = useCallback(async (phoneNumber: string, code: string) => {
+    const result = await verifyOtp(phoneNumber, code);
+    setToken(result.accessToken, result.expireInSeconds);
+    setIsAuthenticated(true);
+  }, []);
+
   const logout = useCallback(() => {
     clearToken();
     setIsAuthenticated(false);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isReady, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isReady, login, loginWithOtp, logout }}>
       {children}
     </AuthContext.Provider>
   );

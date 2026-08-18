@@ -11,7 +11,7 @@ export default function Page() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace("/login");
+      router.replace("/phone-entry");
     }, SPLASH_DURATION_MS);
     return () => clearTimeout(timer);
   }, [router]);

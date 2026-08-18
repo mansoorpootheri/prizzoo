@@ -30,7 +30,8 @@ public class TenantRoleAndUserBuilder
         new DefaultBranchCreator(_context, _tenantId).Create();
         new DefaultEmployeeTypesCreator(_context, _tenantId).Create();
         SeedAdminUserBranchMapping();
-        CreateRetailerRole();
+        CreateShopOwnerRole();
+        CreateShopperRole();
     }
 
     private void CreateRolesAndUsers()
@@ -103,26 +104,45 @@ public class TenantRoleAndUserBuilder
         }
     }
 
-    private void CreateRetailerRole()
+    private void CreateShopOwnerRole()
     {
-        // Not IsDefault: role assignment happens at retailer-application
-        // approval time (RetailerAppService.ApproveApplicationAsync), not at
-        // registration - IsDefault would hand this role to every self-registered
-        // shopper too.
-        var retailerRole = _context.Roles.IgnoreQueryFilters().FirstOrDefault(r => r.TenantId == _tenantId && r.Name == StaticRoleNames.Tenants.Retailer);
-        if (retailerRole == null)
+        // Not IsDefault: role assignment happens when a host admin creates a
+        // store + owner account (StoreAppService.CreateAsync), not at
+        // registration - there is no self-service signup for this role.
+        var shopOwnerRole = _context.Roles.IgnoreQueryFilters().FirstOrDefault(r => r.TenantId == _tenantId && r.Name == StaticRoleNames.Tenants.ShopOwner);
+        if (shopOwnerRole == null)
         {
-            retailerRole = _context.Roles.Add(new Role(_tenantId, StaticRoleNames.Tenants.Retailer, StaticRoleNames.Tenants.Retailer) { IsStatic = true }).Entity;
+            shopOwnerRole = _context.Roles.Add(new Role(_tenantId, StaticRoleNames.Tenants.ShopOwner, StaticRoleNames.Tenants.ShopOwner) { IsStatic = true }).Entity;
             _context.SaveChanges();
         }
 
+        GrantPermissions(shopOwnerRole.Id, PermissionNames.Pages_ShopOwner);
+    }
+
+    private void CreateShopperRole()
+    {
+        // Not IsDefault: role assignment happens on first successful OTP
+        // verification (OtpAuthController.VerifyOtp), not at registration -
+        // there is no separate shopper registration flow.
+        var shopperRole = _context.Roles.IgnoreQueryFilters().FirstOrDefault(r => r.TenantId == _tenantId && r.Name == StaticRoleNames.Tenants.Shopper);
+        if (shopperRole == null)
+        {
+            shopperRole = _context.Roles.Add(new Role(_tenantId, StaticRoleNames.Tenants.Shopper, StaticRoleNames.Tenants.Shopper) { IsStatic = true }).Entity;
+            _context.SaveChanges();
+        }
+
+        GrantPermissions(shopperRole.Id, PermissionNames.Pages_Shopper);
+    }
+
+    private void GrantPermissions(int roleId, params string[] permissionNames)
+    {
         var grantedPermissions = _context.Permissions.IgnoreQueryFilters()
             .OfType<RolePermissionSetting>()
-            .Where(p => p.TenantId == _tenantId && p.RoleId == retailerRole.Id)
+            .Where(p => p.TenantId == _tenantId && p.RoleId == roleId)
             .Select(p => p.Name)
             .ToList();
 
-        var toGrant = new[] { PermissionNames.Pages_Retailer }
+        var toGrant = permissionNames
             .Where(name => !grantedPermissions.Contains(name))
             .ToList();
 
@@ -134,7 +154,7 @@ public class TenantRoleAndUserBuilder
                     TenantId = _tenantId,
                     Name = name,
                     IsGranted = true,
-                    RoleId = retailerRole.Id
+                    RoleId = roleId
                 })
             );
             _context.SaveChanges();

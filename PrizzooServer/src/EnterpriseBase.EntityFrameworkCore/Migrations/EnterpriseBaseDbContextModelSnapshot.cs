@@ -1435,6 +1435,57 @@ namespace EnterpriseBase.Migrations
                     b.ToTable("AppUserDelegations");
                 });
 
+            modelBuilder.Entity("EnterpriseBase.Authorization.Otp.OtpChallenge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AttemptCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime?>("ConsumedAt")
+                        .HasColumnType("timestamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp");
+
+                    b.Property<long?>("CreatorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("DeleterUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("timestamp");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp");
+
+                    b.Property<long?>("LastModifierUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OtpChallenges");
+                });
+
             modelBuilder.Entity("EnterpriseBase.Authorization.Roles.Role", b =>
                 {
                     b.Property<int>("Id")
@@ -2150,6 +2201,57 @@ namespace EnterpriseBase.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("EnterpriseBase.MasterData.Location", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp");
+
+                    b.Property<long?>("CreatorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("DeleterUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("timestamp");
+
+                    b.Property<int>("DistrictId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp");
+
+                    b.Property<long?>("LastModifierUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal?>("Latitude")
+                        .HasColumnType("decimal(9,6)");
+
+                    b.Property<decimal?>("Longitude")
+                        .HasColumnType("decimal(9,6)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DistrictId");
+
+                    b.ToTable("Locations");
+                });
+
             modelBuilder.Entity("EnterpriseBase.MasterData.Product", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2482,6 +2584,9 @@ namespace EnterpriseBase.Migrations
                     b.Property<DateTime>("ObservedAt")
                         .HasColumnType("timestamp");
 
+                    b.Property<decimal?>("OriginalAmount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uuid");
 
@@ -2507,6 +2612,50 @@ namespace EnterpriseBase.Migrations
                     b.HasIndex("ProductId", "StoreId", "Status");
 
                     b.ToTable("Prices");
+                });
+
+            modelBuilder.Entity("EnterpriseBase.Pricing.ProductRating", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp");
+
+                    b.Property<long?>("CreatorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("DeleterUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("timestamp");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp");
+
+                    b.Property<long?>("LastModifierUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("ShopperUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Stars")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId", "ShopperUserId")
+                        .IsUnique();
+
+                    b.ToTable("ProductRatings");
                 });
 
             modelBuilder.Entity("EnterpriseBase.ReleaseNotes.ReleaseNote", b =>
@@ -2622,6 +2771,9 @@ namespace EnterpriseBase.Migrations
                     b.Property<decimal>("Latitude")
                         .HasColumnType("decimal(9,6)");
 
+                    b.Property<Guid?>("LocationId")
+                        .HasColumnType("uuid");
+
                     b.Property<decimal>("Longitude")
                         .HasColumnType("decimal(9,6)");
 
@@ -2649,6 +2801,8 @@ namespace EnterpriseBase.Migrations
                     b.HasIndex("ChainId");
 
                     b.HasIndex("ImageId");
+
+                    b.HasIndex("LocationId");
 
                     b.HasIndex("Latitude", "Longitude");
 
@@ -3082,6 +3236,17 @@ namespace EnterpriseBase.Migrations
                     b.Navigation("Country");
                 });
 
+            modelBuilder.Entity("EnterpriseBase.MasterData.Location", b =>
+                {
+                    b.HasOne("EnterpriseBase.Geography.District", "District")
+                        .WithMany()
+                        .HasForeignKey("DistrictId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("District");
+                });
+
             modelBuilder.Entity("EnterpriseBase.MasterData.Product", b =>
                 {
                     b.HasOne("EnterpriseBase.MasterData.Category", "Category")
@@ -3149,6 +3314,17 @@ namespace EnterpriseBase.Migrations
                     b.Navigation("Store");
                 });
 
+            modelBuilder.Entity("EnterpriseBase.Pricing.ProductRating", b =>
+                {
+                    b.HasOne("EnterpriseBase.MasterData.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("EnterpriseBase.Stores.Store", b =>
                 {
                     b.HasOne("EnterpriseBase.Stores.StoreChain", "Chain")
@@ -3160,9 +3336,16 @@ namespace EnterpriseBase.Migrations
                         .WithMany()
                         .HasForeignKey("ImageId");
 
+                    b.HasOne("EnterpriseBase.MasterData.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Chain");
 
                     b.Navigation("Image");
+
+                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("EnterpriseBase.Stores.StoreChain", b =>

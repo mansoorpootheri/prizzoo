@@ -27,7 +27,14 @@ public static class AppRoleConfig
 
         roleManagementConfig.StaticRoles.Add(
             new StaticRoleDefinition(
-                StaticRoleNames.Tenants.Retailer,
+                StaticRoleNames.Tenants.ShopOwner,
+                MultiTenancySides.Tenant
+            )
+        );
+
+        roleManagementConfig.StaticRoles.Add(
+            new StaticRoleDefinition(
+                StaticRoleNames.Tenants.Shopper,
                 MultiTenancySides.Tenant
             )
         );

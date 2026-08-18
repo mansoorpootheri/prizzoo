@@ -1,20 +1,30 @@
 .root {
+  padding: 20px 16px 12px;
+}
+
+.row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 20px 16px 12px;
+  gap: 12px;
 }
 
 .left {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
-.pin {
-  width: 14px;
-  height: 17px;
+.pinBadge {
   flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
 }
 
 .text {
@@ -34,8 +44,160 @@
   color: var(--color-foreground-muted);
 }
 
-.cameraIcon {
-  width: 32px;
-  height: 32px;
-  opacity: 0.55;
+/* Fills the space right after the location block. Icons sit in normal flow
+   (so this area's height is always well-defined); the search field is an
+   absolute overlay anchored to this area's own left edge, so it visually
+   grows out starting right where the location block ends, not from the
+   far right and not as a separate row below. */
+.rightArea {
+  position: relative;
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.icons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: opacity 180ms ease;
+}
+
+.iconsHidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: none;
+  border: none;
+  color: var(--color-foreground-muted);
+  font-size: 16px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.iconButton img {
+  width: 15px;
+  height: 15px;
+}
+
+.menuWrap {
+  position: relative;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--color-accent);
+  background: none;
+  padding: 0;
+  color: var(--color-foreground-muted);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.menu {
+  position: absolute;
+  top: 34px;
+  right: 0;
+  min-width: 110px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  z-index: 10;
+}
+
+.menuItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: var(--color-foreground);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: var(--color-surface-raised);
+}
+
+.searchInline {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  opacity: 0;
+  transform: scaleX(0.05);
+  transform-origin: left center;
+  pointer-events: none;
+  transition: transform 260ms ease, opacity 200ms ease;
+}
+
+.searchInlineOpen {
+  opacity: 1;
+  transform: scaleX(1);
+  pointer-events: auto;
+}
+
+.searchIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.searchIcon img {
+  width: 100%;
+  height: 100%;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  color: var(--color-foreground);
+  font-size: 14px;
+}
+
+.searchInput::placeholder {
+  color: var(--color-foreground-muted);
+}
+
+.searchInput:focus {
+  outline: none;
+}
+
+.cancelButton {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
 }

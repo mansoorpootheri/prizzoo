@@ -22,7 +22,7 @@ export default function Page({ params }: { params: Promise<{ keyword: string }> 
 
   useEffect(() => {
     if (isReady && !isAuthenticated) {
-      router.replace("/login");
+      router.replace("/phone-entry");
     }
   }, [isReady, isAuthenticated, router]);
 

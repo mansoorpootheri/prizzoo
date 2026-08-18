@@ -1,14 +1,17 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, RefObject, useState } from "react";
 import styles from "./SearchBar.module.css";
 
 interface SearchBarProps {
   onSearch: (keyword: string) => void;
   loading: boolean;
+  // Lets the top bar's search icon focus this input instead of duplicating
+  // a second search field.
+  inputRef?: RefObject<HTMLInputElement | null>;
 }
 
-export function SearchBar({ onSearch, loading }: SearchBarProps) {
+export function SearchBar({ onSearch, loading, inputRef }: SearchBarProps) {
   const [keyword, setKeyword] = useState("");
 
   function handleSubmit(event: FormEvent) {
@@ -21,6 +24,7 @@ export function SearchBar({ onSearch, loading }: SearchBarProps) {
   return (
     <form className={styles.root} onSubmit={handleSubmit}>
       <input
+        ref={inputRef}
         className={styles.input}
         type="text"
         placeholder="Search for a product…"

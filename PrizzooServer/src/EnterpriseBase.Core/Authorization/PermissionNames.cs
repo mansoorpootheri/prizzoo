@@ -99,11 +99,23 @@ namespace EnterpriseBase.Authorization
         public const string Pages_Stores_Edit = "Pages.Stores.Edit";
         public const string Pages_Stores_Delete = "Pages.Stores.Delete";
 
+        // Prizzoo: Location master data - a locality within a Geography
+        // District, e.g. "Feroke" within the "Kozhikode" district. District
+        // (Geography module, Pages_Geography_Districts) plays the "city"
+        // role in the store-creation form; Country/State are fixed
+        // constants for MVP (India/Kerala) with no separate master UI.
+        public const string Pages_Locations = "Pages.Locations";
+        public const string Pages_Locations_Create = "Pages.Locations.Create";
+        public const string Pages_Locations_Edit = "Pages.Locations.Edit";
+        public const string Pages_Locations_Delete = "Pages.Locations.Delete";
+
         // Prizzoo: Price moderation
         public const string Pages_PriceModeration = "Pages.PriceModeration";
 
-        // Prizzoo: Retailer self-service
-        public const string Pages_Retailer = "Pages.Retailer";
-        public const string Pages_RetailerModeration = "Pages.RetailerModeration";
+        // Prizzoo: shop owner portal (host-admin-provisioned, no self-service signup)
+        public const string Pages_ShopOwner = "Pages.ShopOwner";
+
+        // Prizzoo: OTP-verified shopper browsing
+        public const string Pages_Shopper = "Pages.Shopper";
     }
 }

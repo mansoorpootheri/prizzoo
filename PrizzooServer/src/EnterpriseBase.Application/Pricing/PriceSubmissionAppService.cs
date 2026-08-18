@@ -6,6 +6,7 @@ using Abp.Domain.Uow;
 using Abp.Runtime.Session;
 using Abp.UI;
 using EnterpriseBase.Authorization;
+using EnterpriseBase.Application.Notifications;
 using EnterpriseBase.Application.Pricing.Dto;
 using EnterpriseBase.Pricing;
 using Microsoft.EntityFrameworkCore;
@@ -37,10 +38,14 @@ namespace EnterpriseBase.Application.Pricing
     public class PriceSubmissionAppService : ApplicationService, IPriceSubmissionAppService
     {
         private readonly IRepository<Price, Guid> _priceRepository;
+        private readonly INotifyShopOwnerService _notifyShopOwnerService;
 
-        public PriceSubmissionAppService(IRepository<Price, Guid> priceRepository)
+        public PriceSubmissionAppService(
+            IRepository<Price, Guid> priceRepository,
+            INotifyShopOwnerService notifyShopOwnerService)
         {
             _priceRepository = priceRepository;
+            _notifyShopOwnerService = notifyShopOwnerService;
         }
 
         [AbpAuthorize]
@@ -52,6 +57,7 @@ namespace EnterpriseBase.Application.Pricing
                 ProductId        = input.ProductId,
                 StoreId          = input.StoreId,
                 Amount           = input.Amount,
+                OriginalAmount   = input.OriginalAmount,
                 Currency         = "INR",
                 Source           = PriceSource.Crowdsourced,
                 Status           = PriceStatus.Pending,
@@ -91,7 +97,10 @@ namespace EnterpriseBase.Application.Pricing
         [UnitOfWork]
         public virtual async Task ModerateAsync(ModeratePriceDto input)
         {
-            var price = await _priceRepository.FirstOrDefaultAsync(x => x.Id == input.Id);
+            var price = await _priceRepository.GetAll()
+                .Include(x => x.Store)
+                .Include(x => x.Product)
+                .FirstOrDefaultAsync(x => x.Id == input.Id);
             if (price == null)
                 throw new UserFriendlyException("Price submission not found");
 
@@ -100,6 +109,12 @@ namespace EnterpriseBase.Application.Pricing
 
             await _priceRepository.UpdateAsync(price);
             await CurrentUnitOfWork.SaveChangesAsync();
+
+            if (price.Status == PriceStatus.Rejected && price.Store?.OwnerUserId != null)
+            {
+                await _notifyShopOwnerService.NotifyPriceRejectedAsync(
+                    price.Store.OwnerUserId.Value, price.Product.Name, price.ModerationNote);
+            }
         }
     }
 }

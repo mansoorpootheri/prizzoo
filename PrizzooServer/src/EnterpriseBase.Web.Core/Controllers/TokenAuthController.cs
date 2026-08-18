@@ -2,7 +2,6 @@
 using Abp.Authorization.Users;
 using Abp.Domain.Uow;
 using Abp.MultiTenancy;
-using Abp.Runtime.Security;
 using Abp.UI;
 using EnterpriseBase.Authentication.JwtBearer;
 using EnterpriseBase.Authorization;
@@ -12,17 +11,14 @@ using EnterpriseBase.Models.TokenAuth;
 using EnterpriseBase.MultiTenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace EnterpriseBase.Controllers
 {
     [Route("api/[controller]/[action]")]
-    public class TokenAuthController : EnterpriseBaseControllerBase
+    public class TokenAuthController : JwtIssuingControllerBase
     {
         private readonly LogInManager _logInManager;
         private readonly ITenantCache _tenantCache;
@@ -30,6 +26,8 @@ namespace EnterpriseBase.Controllers
         private readonly TokenAuthConfiguration _configuration;
         private readonly UserManager _userManager;
         private readonly IImpersonationManager _impersonationManager;
+
+        protected override TokenAuthConfiguration Configuration => _configuration;
 
         public TokenAuthController(
             LogInManager logInManager,
@@ -117,41 +115,5 @@ namespace EnterpriseBase.Controllers
             }
         }
 
-        private string CreateAccessToken(IEnumerable<Claim> claims, TimeSpan? expiration = null)
-        {
-            var now = DateTime.UtcNow;
-
-            var jwtSecurityToken = new JwtSecurityToken(
-                issuer: _configuration.Issuer,
-                audience: _configuration.Audience,
-                claims: claims,
-                notBefore: now,
-                expires: now.Add(expiration ?? _configuration.Expiration),
-                signingCredentials: _configuration.SigningCredentials
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
-        }
-
-        private static List<Claim> CreateJwtClaims(ClaimsIdentity identity)
-        {
-            var claims = identity.Claims.ToList();
-            var nameIdClaim = claims.First(c => c.Type == ClaimTypes.NameIdentifier);
-
-            // Specifically add the jti (random nonce), iat (issued timestamp), and sub (subject/user) claims.
-            claims.AddRange(new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, nameIdClaim.Value),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.Now.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
-            });
-
-            return claims;
-        }
-
-        private string GetEncryptedAccessToken(string accessToken)
-        {
-            return SimpleStringCipher.Instance.Encrypt(accessToken);
-        }
     }
 }

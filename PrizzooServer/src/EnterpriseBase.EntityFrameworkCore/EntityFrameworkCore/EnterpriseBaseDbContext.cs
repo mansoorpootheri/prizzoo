@@ -2,6 +2,7 @@ using Abp.Localization;
 using Abp.Runtime.Session;
 using Abp.Zero.EntityFrameworkCore;
 using EnterpriseBase.Authorization.Delegation;
+using EnterpriseBase.Authorization.Otp;
 using EnterpriseBase.Authorization.Roles;
 using EnterpriseBase.Authorization.Users;
 using EnterpriseBase.Branches;
@@ -32,6 +33,7 @@ public class EnterpriseBaseDbContext : AbpZeroDbContext<Tenant, Role, User, Ente
     public virtual DbSet<BinaryObject> BinaryObjects { get; set; }
     public virtual DbSet<UserDelegation> UserDelegations { get; set; }
     public virtual DbSet<UserBranchMapping> UserBranchMappings { get; set; }
+    public virtual DbSet<OtpChallenge> OtpChallenges { get; set; }
     public virtual DbSet<Country> Countries { get; set; }
     public virtual DbSet<State> States { get; set; }
     public virtual DbSet<District> Districts { get; set; }
@@ -49,6 +51,8 @@ public class EnterpriseBaseDbContext : AbpZeroDbContext<Tenant, Role, User, Ente
     public virtual DbSet<StoreChain> StoreChains { get; set; }
     public virtual DbSet<Store> Stores { get; set; }
     public virtual DbSet<Price> Prices { get; set; }
+    public virtual DbSet<ProductRating> ProductRatings { get; set; }
+    public virtual DbSet<Location> Locations { get; set; }
 
     public EnterpriseBaseDbContext(DbContextOptions<EnterpriseBaseDbContext> options)
         : base(options)
@@ -113,7 +117,31 @@ public class EnterpriseBaseDbContext : AbpZeroDbContext<Tenant, Role, User, Ente
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Store>()
+            .HasOne(x => x.Location)
+            .WithMany()
+            .HasForeignKey(x => x.LocationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Location>()
+            .HasOne(x => x.District)
+            .WithMany()
+            .HasForeignKey(x => x.DistrictId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Store>()
             .HasIndex(x => new { x.Latitude, x.Longitude });
+
+        modelBuilder.Entity<ProductRating>()
+            .HasOne(x => x.Product)
+            .WithMany()
+            .HasForeignKey(x => x.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // One rating per shopper per product - rating again overwrites,
+        // enforced at the DB level, not just in application code.
+        modelBuilder.Entity<ProductRating>()
+            .HasIndex(x => new { x.ProductId, x.ShopperUserId })
+            .IsUnique();
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {

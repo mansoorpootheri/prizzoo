@@ -1,6 +1,6 @@
 .root {
   composes: appShell from global;
-  padding-bottom: 24px;
+  padding-bottom: 78px;
 }
 
 .glow {
@@ -19,3 +19,4 @@
   position: relative;
   z-index: 1;
 }
+
