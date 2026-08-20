@@ -54,7 +54,7 @@ export function StoreList() {
       {!loading && !error && stores && stores.length > 0 && (
         <div className={styles.list}>
           {stores.map((store) => (
-            <a key={store.id} className={styles.card} href={`/admin/stores/${store.id}/edit`}>
+            <a key={store.id} className={styles.card} href={`/admin/stores/edit?id=${store.id}`}>
               <div className={styles.info}>
                 <div className={styles.name}>{store.name}</div>
                 <div className={styles.meta}>

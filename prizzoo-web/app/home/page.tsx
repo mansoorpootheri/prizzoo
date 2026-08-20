@@ -120,7 +120,7 @@ export default function Page() {
   }, [feedSections]);
 
   function handleSelect(result: StorePriceResult) {
-    router.push(`/product/${encodeURIComponent(result.productName)}`);
+    router.push(`/product?keyword=${encodeURIComponent(result.productName)}`);
   }
 
   if (!isReady || !isAuthenticated) {

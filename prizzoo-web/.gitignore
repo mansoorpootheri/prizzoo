@@ -33,6 +33,11 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+# NEXT_PUBLIC_* values here end up inlined in the client bundle anyway, so
+# they're not secret - committing this is what makes `next build`/`next
+# start` (production mode) work out of the box without extra deploy steps.
+# Never put non-NEXT_PUBLIC_ secrets in this file.
+!.env.production
 
 # vercel
 .vercel
