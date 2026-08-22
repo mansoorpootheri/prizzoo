@@ -1,0 +1,35 @@
+.existingHeading {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-foreground-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.existingList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.existingItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-size: 12px;
+}
+
+.existingName {
+  color: var(--color-foreground);
+}
+
+.existingPrice {
+  flex-shrink: 0;
+  color: var(--color-foreground-muted);
+}

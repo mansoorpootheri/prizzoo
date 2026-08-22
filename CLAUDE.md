@@ -33,15 +33,19 @@ backend is from the full product vision:
   pharmacy — not metro grocery, to avoid competing with quick-commerce apps
   like Blinkit/Zepto); shoppers must never be charged (comparison stays
   free); identity is phone-number/OTP based, not email/password — this part
-  of the roadmap **is now built** (see Auth model below), unlike most of the
-  rest of the plan. Retailer price updates were meant to come in via
-  **WhatsApp Business**, not a web dashboard, because most kirana owners
-  won't log into a portal; that intake channel still isn't built, and what
-  exists instead is a password-authenticated **shop-owner web dashboard**
-  (`app/shop-owner/`) where a host admin-provisioned owner submits prices
-  directly — a stopgap, not the WhatsApp flow the plan describes. `Price`'s
-  `PriceSource.RetailerReported`/`Crowdsourced` enum values predate this and
-  still reflect the original WhatsApp-vs-shopper-submitted distinction. ONDC
+  of the roadmap **is now built** (see Auth model below), and in fact now
+  covers admin login too, not just shoppers. Retailer price updates were
+  meant to come in via **WhatsApp Business**, not a web dashboard, because
+  most kirana owners won't log into a portal; that intake channel still
+  isn't built. A password-authenticated self-service shop-owner web
+  dashboard was built as a stopgap and has since been **torn out entirely**
+  (`ShopOwnerAppService`, `app/shop-owner/`, store-owner provisioning on
+  `Store` — all deleted, see Auth model and Modules deleted below); what
+  exists today instead is admin-direct price entry
+  (`PriceSubmissionAppService.CreateApprovedAsync`, `app/admin/prices/`).
+  `Price`'s `PriceSource.RetailerReported`/`Crowdsourced` enum values predate
+  this churn and no longer map cleanly to "who submitted it" — see the
+  domain model notes below. ONDC
   integration and PostGIS-based geo queries are explicitly deferred to later
   phases, not MVP. The roadmap (Phase 1–4) is far ahead of what's
   implemented — most of it (price-history charts, barcode scan, alerts,
@@ -53,10 +57,12 @@ backend is from the full product vision:
   — the two core data flows the app is built around: shopper searches → app
   compares nearby prices → shopper picks the cheapest/closest store → walks
   in and buys (maps to `PriceCompareAppService`); shop owner sends a price
-  update → gets checked → goes live for shoppers (maps to `ShopOwnerAppService`
-  and/or `PriceSubmissionAppService` + moderation — the diagram predates the
-  current split between host-provisioned shop owners and anonymous
-  crowdsourced submitters, see Auth model below).
+  update → gets checked → goes live for shoppers. The shop-owner-side diagram
+  is now stale on *who* performs that update: the dedicated shop-owner
+  actor/login it depicts has been removed, and the update instead comes from
+  either an anonymous shopper (`PriceSubmissionAppService.SubmitAsync` +
+  moderation) or an admin entering it directly
+  (`PriceSubmissionAppService.CreateApprovedAsync`, no moderation step).
 - **`HOME-Black-Mode.pdf`** / **`LOGIN.pdf`** — mobile UI mockups (brand name
   styled "PriZzoO.com", tagline "Compare. Locate. Save"). `LOGIN.pdf` shows
   an OTP phone-login screen, which the current `/phone-entry` → `/otp-verify`
@@ -133,8 +139,10 @@ Layered ABP solution, dependencies flow top-to-bottom:
   used by hosting layers. `Controllers/JwtIssuingControllerBase.cs` factors
   out JWT creation (`CreateAccessToken`/`CreateJwtClaims`) shared by both
   `TokenAuthController` (password login) and `OtpAuthController` (OTP
-  login) — tokens from either path are interchangeable everywhere
-  `[AbpAuthorize]` is used.
+  login), so tokens from either would be interchangeable everywhere
+  `[AbpAuthorize]` is used — but see Auth model below: `TokenAuthController`
+  is unreferenced by the frontend today, since OTP is now the only login
+  path for every role.
 - **EnterpriseBase.Web.Host** — the actual runnable ASP.NET Core app:
   `Startup/Program.cs`, `Startup/Startup.cs`,
   `Startup/EnterpriseBaseWebHostModule.cs`, navigation/menu/permission
@@ -148,49 +156,68 @@ Layered ABP solution, dependencies flow top-to-bottom:
   default tenant + tenant admin user in the constructor of every test class.
   Only `Users/` and `Sessions/` have test classes today — none of the
   Prizzoo-specific app services (`PriceCompareAppService`,
-  `PriceSubmissionAppService`, `ShopOwnerAppService`, `FlyerAppService`,
-  etc.) have any test coverage yet; there's no existing pattern to follow
-  for testing them, only the generic ABP test-base scaffolding above.
+  `PriceSubmissionAppService`, `FlyerAppService`, `AdminAppService`, etc.)
+  have any test coverage yet; there's no existing pattern to follow for
+  testing them, only the generic ABP test-base scaffolding above.
 - **test/EnterpriseBase.Web.Tests** — thin web/controller-level tests.
 
-### Auth model: OTP for shoppers, passwords for admin/shop-owner
+### Auth model: OTP for everyone, admin included
 
-Two separate, coexisting login paths, both issuing interchangeable JWTs via
-`JwtIssuingControllerBase`:
+This has changed twice: originally shoppers used OTP while admin/shop-owner
+used passwords; then a self-service shop-owner role was added (also
+password-based); **both password paths are now gone**. Every login — admin
+or shopper — goes through the same phone+OTP flow, and `TokenAuthController`
+(`/api/TokenAuth/Authenticate`, password-based, still present in
+`Web.Core/Controllers/`) is unreferenced by the frontend and effectively
+dead — don't build new features against it, and don't be surprised it still
+compiles.
 
-- **Shoppers** log in with phone + OTP, never a password.
-  `OtpAuthController.RequestOtp` (→ `Application/Otp/OtpChallengeService`)
-  creates an `OtpChallenge` row (`Core/Authorization/Otp/OtpChallenge.cs`,
-  hashed code, 5-min expiry, throttled) and sends it via `ISmsSender`; the
-  only implementation is `NoopSmsSender`, which just logs the code — **there
-  is no real SMS integration**, and `GenerateCode()` currently hardcodes
-  `"123456"` instead of a random code (explicit TODO in the file). Anyone
-  can log in as any phone number right now — don't treat this as a real
-  auth boundary until that's fixed. `VerifyOtp` looks up/creates a `User`
-  under the default tenant on first success (phone becomes `UserName`,
-  synthesized placeholder email, random unusable password) and grants role
-  `Shopper`. Shopper JWTs are also deliberately longer-lived than
-  admin/shop-owner ones — 30 days (`AppConsts.ShopperAccessTokenExpiration`)
-  vs. 1 day (`AppConsts.AccessTokenExpiration`) — since there's no
-  refresh-token flow for shoppers and a shopper shouldn't have to re-verify
-  their phone every day.
-- **Admin and shop-owner** accounts are password-based via the unchanged
-  `TokenAuthController` (`/api/TokenAuth/Authenticate`). There is **no
-  self-registration** — a host admin creates a store *and* its owner's login
-  together in one call (`StoreAppService.CreateAsync`), returning a
-  one-time password (`StoreDto.OwnerTemporaryPassword`) for the admin to
-  relay manually. Newly created stores are `IsVerified = true` immediately
-  (host admin creating it *is* the verification).
+- **`OtpAuthController`** (`Web.Core/Controllers/OtpAuthController.cs`) is
+  now the *only* login path, for both roles. `RequestOtp` (→
+  `Application/Otp/OtpChallengeService`) creates an `OtpChallenge` row
+  (`Core/Authorization/Otp/OtpChallenge.cs`, hashed code, 5-min expiry,
+  throttled) and sends it via `ISmsSender`; the only implementation is
+  `NoopSmsSender`, which just logs the code — **there is no real SMS
+  integration**, and `GenerateCode()` currently hardcodes `"123456"` instead
+  of a random code (explicit TODO in the file). Anyone can log in as any
+  phone number right now — don't treat this as a real auth boundary until
+  that's fixed. `VerifyOtp` looks up/creates a `User` under the default
+  tenant on first success (phone becomes `UserName`, synthesized placeholder
+  email, random unusable password) and grants role `Shopper` — **unless**
+  that phone number already carries the `Admin` role (assigned by seeding or
+  by `AdminAppService`), in which case it logs in as an admin instead.
+  Which role a phone number gets is decided **server-side, not by anything
+  the client sends** — see `AuthContext.tsx`'s `login()` on the frontend
+  side. Admin sessions get the short 1-day expiration
+  (`AppConsts.AccessTokenExpiration`) rather than the shopper one, since the
+  OTP is still the stubbed `"123456"` code and a month-long admin session
+  would be riskier; shoppers keep the 30-day `AppConsts.
+  ShopperAccessTokenExpiration` (no refresh-token flow, so a shopper
+  shouldn't have to re-verify their phone every visit).
+- **`EnterpriseBaseConsts.InitialAdminPhoneNumber`** is the one admin phone
+  number seeded directly into the database (`TenantRoleAndUserBuilder.cs`) —
+  the bootstrap account with no chicken-and-egg problem. From there,
+  `AdminAppService` (`Application/Admin/`, gated `Pages_Admins`,
+  `app/admin/admins/`) lets a logged-in admin add further admin phone
+  numbers; there's still no self-registration into the `Admin` role, only
+  admin-invites-admin.
+- **`RegisteredUserAppService`** (`Application/Users/`, gated
+  `Pages_RegisteredUsers`, `app/admin/users/`) is a read-only admin view of
+  every `Shopper`-role account created via OTP login — shoppers self-create
+  on first `VerifyOtp`, so there's nothing to add/edit here, only to list.
 
-Roles (`Core/Authorization/Roles/StaticRoleNames.cs`): `Host.Admin`,
-`Tenant.Admin`, `Tenant.ShopOwner`, `Tenant.Shopper`. **The old "Retailer"
-role/module is gone entirely** (`RetailerAppService`/`RetailerDtos.cs`
-deleted, `Pages_Retailer` permission removed) — everywhere the domain used
-to say "retailer" it now says "shop owner", except the untouched
-`PriceSource.RetailerReported` enum value. There's no separate moderator
-role: `Pages_PriceModeration` and `Pages_Products_Edit` are granted to the
-same tenant `Admin` role that does tenant administration, so one
-`admin@Default.com`-style login both administers and moderates.
+Roles (`Core/Authorization/Roles/StaticRoleNames.cs`): just `Host.Admin`,
+`Tenant.Admin`, `Tenant.Shopper` — **`Tenant.ShopOwner` is gone**, along with
+the entire self-service shop-owner login model (`ShopOwnerAppService`,
+`Store.OwnerUserId`, `StoreDto.OwnerTemporaryPassword`, `app/shop-owner/`;
+see Modules deleted below). The older "Retailer" role/module was removed
+even earlier (`RetailerAppService`/`RetailerDtos.cs` deleted, `Pages_Retailer`
+permission removed) and never came back under either name — the untouched
+`PriceSource.RetailerReported` enum value is the only trace either one left
+behind. There's no separate moderator role: `Pages_PriceModeration` and
+`Pages_Products_Edit` are granted to the same tenant `Admin` role that does
+tenant administration and store/price CRUD, so one admin phone number does
+everything back-office.
 
 ### Domain model: public catalog, not multi-tenant
 
@@ -204,10 +231,12 @@ source of most "why is this not tenant-scoped" questions:
   a plain nullable int reserved for a future Phase 3 white-label mode; adding
   `IMayHaveTenant` to it now would make ABP's tenant filter silently hide
   host-created stores from tenant-scoped queries, so don't do that without
-  re-reading the reasoning in `Store.cs`'s doc comment first. `Store` also
-  has a nullable `OwnerUserId` linking it to its shop-owner `User` and a
-  nullable `LocationId` FK (see MasterData below) as the source of truth for
-  where it is, with `Store.City` kept as a denormalized display string.
+  re-reading the reasoning in `Store.cs`'s doc comment first. `Store` no
+  longer has an `OwnerUserId` (removed with the shop-owner model, see Auth
+  model above) — there is no per-store owner login, so nothing here is
+  scoped by owner any more. `Store` does have a nullable `LocationId` FK
+  (see MasterData below) as the source of truth for where it is, with
+  `Store.City` kept as a denormalized display string.
 - `Price` is **append-only** (one row per product/store/observation, never
   updated in place) so that price-history charts work later without a
   separate audit table. Only `Status == Approved` rows should ever be
@@ -223,21 +252,22 @@ source of most "why is this not tenant-scoped" questions:
   shopper login. This is explicitly an MVP shortcut that won't scale past
   one city — see the doc comment for the Postgres `earthdistance`/PostGIS
   upgrade path before touching its filtering logic.
-- `PriceSubmissionAppService` is the crowdsourced-submission/moderation
+- `PriceSubmissionAppService` covers both the shopper crowdsourced path and
+  the admin direct-entry path, now that there's no separate shop-owner
   service: any authenticated user can `SubmitAsync` a price
-  (`Source=Crowdsourced`); `GetPendingAsync`/`ModerateAsync` require
-  `Pages_PriceModeration`. Rejecting a price triggers
-  `INotifyShopOwnerService.NotifyPriceRejectedAsync` when the store has an
-  owner (only impl is `NoopNotifyShopOwnerService`, which just logs — no
-  real WhatsApp/push integration yet).
-- `ShopOwnerAppService` (`Application/ShopOwner/`) is the separate,
-  pre-verified path for a store's own owner: resolves "my store" via
-  `Store.OwnerUserId == AbpSession.UserId`, so an owner can never act on
-  someone else's store. `CreateMyProductAsync` goes live immediately with no
-  moderation (the owner is already verified), but
-  `SubmitPriceForMyStoreAsync` still creates a `Pending` price
-  (`Source=RetailerReported`) that goes through the same moderation queue as
-  crowdsourced submissions.
+  (`Source=Crowdsourced`, goes to `Pending`) — though currently **nothing in
+  the frontend calls it**, `submitPrice()` exists in `lib/api/
+  priceSubmission.ts` unused by any component, so crowdsourced submission is
+  backend-only right now. `GetPendingAsync`/`ModerateAsync` (admin
+  moderation queue, `app/admin/moderation/prices/`) and `CreateApprovedAsync`
+  (admin direct entry, skips moderation entirely, `Source=RetailerReported`,
+  `app/admin/prices/` via `AddStorePriceForm`) all require
+  `Pages_PriceModeration`, as do `GetAllAsync`/`UpdateAsync`/`DeleteAsync` —
+  the full admin price-list CRUD backing `PriceList`/`EditPriceForm`. The
+  `INotifyShopOwnerService` shop-notification seam this service used to call
+  on rejection has been deleted along with the rest of the shop-owner model
+  (see Auth model above) — rejection is now silent, no notification path
+  exists.
 - `Flyer` (`Core/Pricing/Flyer.cs`, `Application/Flyers/FlyerAppService.cs`)
   is deliberately minimal: **admin-only**, **manual entry**, **no
   moderation step** — an earlier OCR/AI-extraction design (a `FlyerItem`
@@ -250,14 +280,39 @@ source of most "why is this not tenant-scoped" questions:
   one call; each line either picks an existing `Product` via `ProductId`,
   or is matched by exact case-insensitive name against the catalog, or
   creates a new `Product` (optionally under a category) if no match exists
-  — mirrors `ShopOwnerAppService.CreateMyProductAsync`'s "pre-verified
-  actor, goes live immediately" precedent. There is **no `FlyerItem`
-  table**: each line item is inserted directly as a real `Price` row
-  (`Source = PriceSource.Flyer`, `Status = Approved` immediately, nullable
-  `Price.FlyerId` FK back to the `Flyer`), so flyer-sourced prices flow
-  through the exact same search/home-feed/freshness machinery as any other
-  price — there is no separate "flyer price" display path, and `Flyer`
-  itself carries no status field (creating one *is* publishing it).
+  — a "pre-verified actor, goes live immediately" pattern also used by
+  `PriceSubmissionAppService.CreateApprovedAsync` (see above).
+  `AddItemsToFlyerAsync` (same gate, same per-item resolution logic,
+  factored into a shared `InsertItemsAsync` private helper) lets an admin
+  append more items to a flyer that's already live, e.g. from the
+  `app/admin/flyers/` list's "Add product" action. `Flyer` itself carries no
+  status field (creating one *is* publishing it).
+
+  **`FlyerProduct`** (`Core/Pricing/FlyerProduct.cs`) is the master/detail
+  link between a `Flyer` and the `Product`s it features — just `FlyerId` +
+  `ProductId`, a unique index on the pair, nothing else. It deliberately
+  carries **no price of its own**: `Price` is a fully separate entity again
+  with no connection to `Flyer` at all (no `FlyerId`/`Flyer` nav —
+  `PriceSource.Flyer` was removed too). This replaced an earlier design
+  (migration `SimplifyFlyerToManualEntry`, then superseded by migration
+  `AddFlyerProductAndRemovePriceFlyerId`) where every flyer item wrote its
+  own new `Price` row — which meant a product already priced at a store got
+  a **second**, duplicate `Price` row the moment it was also put on that
+  store's flyer. Now `InsertItemsAsync` only ever inserts a `Price` row the
+  *first* time a product has no existing Approved price at that store yet
+  (a genuinely new price, tagged `Source = RetailerReported` like any other
+  admin-direct entry); if one already exists, it links via `FlyerProduct`
+  and leaves `Price` untouched. Anywhere a flyer's items need displaying —
+  `BuildFlyerDetailDtosAsync` (backing `GetFlyersForStoreAsync`/
+  `GetRecentFlyersAsync`) and `PriceCompareAppService.ComparePricesAsync`'s
+  `FlyerId`-scoped branch — resolves each item's current price by looking
+  it up live from `Price` (`ProductId` + the flyer's own `StoreId`,
+  `Status == Approved`, most recent `ObservedAt` wins), never from
+  `FlyerProduct`. This is why a flyer-listed product still shows up in
+  ordinary keyword search/home-feed too: it's just its own regular `Price`
+  row doing that, same as any other product — `FlyerProduct` only decides
+  what's *featured on the flyer*, not what's searchable.
+
   `ComparePricesInputDto.FlyerId` is a `PriceCompareAppService` filter (like
   the existing `StoreId` one) that **deliberately skips the usual
   bounding-box/radius geo-filtering** — `FlyerAppService.
@@ -279,21 +334,41 @@ source of most "why is this not tenant-scoped" questions:
   dead code to delete on sight.
 - `Application/MasterData/Locations/` (`Location` entity,
   `Core/MasterData/Location.cs`) is a locality *within* a `District` (e.g.
-  "Feroke" within "Kozhikode"), with optional lat/lng — **distinct from**
-  the pre-existing, unrelated `Core/Geography`/`Application/Geography`
-  Country→State→District CRUD module; don't conflate the two.
-  `DefaultGeographyCreator.cs` seeds India/Kerala/all 14 Kerala districts as
-  fixed MVP constants (no admin UI for country/state); `District` plays the
-  "city" role in store-creation forms, and `Location` narrows within it.
-  Host-only CRUD via `LocationAppService`, gated `Pages_Locations`.
+  "Feroke" within "Kozhikode") — **distinct from** the pre-existing,
+  unrelated `Core/Geography`/`Application/Geography` Country→State→District
+  CRUD module; don't conflate the two. `DefaultGeographyCreator.cs` seeds
+  India/Kerala/all 14 Kerala districts as fixed MVP constants (no admin UI
+  for country/state); `District` plays the "city" role in store-creation
+  forms, and `Location` narrows within it. `LocationAppService.
+  CreateOrEditAsync`/`DeleteAsync` stay admin-only (`Pages_Locations_*`),
+  but `GetAllAsync`/`GetForComboboxAsync` are gated `[AbpAuthorize
+  (Pages_Locations, Pages_Shopper)]` — an OR, so any authenticated user can
+  read the list, not just admins — since shoppers now need it too (see the
+  `LocationPickerModal` note under Frontend below). A `Location`'s
+  `Latitude`/`Longitude` are `[Required]` on every create/edit call and are
+  captured **only** via the admin's device GPS (`LocationMaster.tsx`'s "use
+  my current location" button) — there is no manual numeric-entry path any
+  more, and `GetForComboboxAsync` only ever returns locations that already
+  have both set. The entity columns stay nullable for legacy rows created
+  before this was enforced. `Store.Latitude`/`Longitude` are no longer
+  independently settable at all: `LocationId` is `[Required]` on
+  `CreateStoreDto`/`UpdateStoreDto`, and `StoreAppService` derives a store's
+  coordinates entirely from its `Location` server-side (rejecting the save
+  if that `Location` has no coordinates yet) — a `Location` is now the sole
+  source of geocoding anywhere in the app, both for stores and (see below)
+  for a shopper's picked location. Existing stores were one-time backfilled
+  from their `Location`'s coordinates by migration
+  `SyncStoreCoordinatesFromLocation`.
 - `Application/Ratings/ProductRatingAppService.cs` (`Core/Pricing/
   ProductRating.cs`) is a simple product-scoped (not store/price-scoped)
   1–5 star rating, one per shopper per product (unique index on
   `ProductId`+`ShopperUserId`, rating again overwrites). `Application/
-  Account/MyAccountAppService.ChangeMyPasswordAsync` is a deliberately
-  separate self-service password-change endpoint from
-  `UserAppService.ChangePassword`, since the latter requires `Pages_Users`
-  and would 403 for ShopOwner/Shopper roles.
+  Account/MyAccountAppService.ChangeMyPasswordAsync` is a self-service
+  password-change endpoint, kept distinct from `UserAppService.
+  ChangePassword` (which requires `Pages_Users` and would 403 for a
+  Shopper) — but now that every login is phone+OTP with no password to
+  change, it's unreferenced by the frontend and effectively dead code, kept
+  around as harmless rather than actively used.
 - Multi-tenancy (`Authorization`, `Identity`, `MultiTenancy` modules) is kept
   and functional for host/tenant admin accounts, but is orthogonal to the
   public catalog — don't assume `AbpSession.TenantId` scoping applies to
@@ -304,8 +379,13 @@ source of most "why is this not tenant-scoped" questions:
 
 Sales, Purchases, Inventory, VanManagement, RouteManagement, Vouchers,
 Accounting, CreditNotes, Tours, FinancialYears, Invoicing, the old `Parties`
-module, and (more recently) `Retailer` (replaced by `ShopOwner`, see Auth
-model above). `EnterpriseBaseNavigationProvider.cs`,
+module, `Retailer` (briefly replaced by `ShopOwner`), and — most recently —
+`Branches` and `Employees` (unrelated leftover ERP modules, migration
+`RemoveBranchEmployeeModuleAndDemoSeeder`) and `ShopOwner` itself
+(`ShopOwnerAppService`, its DTOs, `INotifyShopOwnerService`, `Store.
+OwnerUserId`; migration `RemoveShopOwnerModel`). Nothing has replaced
+`Retailer` or `ShopOwner` — see Auth model above for what price-submission
+looks like now that neither exists. `EnterpriseBaseNavigationProvider.cs`,
 `EnterpriseBaseAuthorizationProvider.cs`, and `PermissionNames.cs` have since
 been cleaned of references to the deleted batch, but
 `Web.Host/Startup/PageNames.cs` still has stale `const string` entries for
@@ -330,45 +410,84 @@ npm run lint     # eslint (flat config, eslint-config-next core-web-vitals + typ
 ```
 
 Env vars (see `.env.example`): `NEXT_PUBLIC_API_BASE_URL` (defaults to
-`http://localhost:5001`, the ABP host above), `NEXT_PUBLIC_DEFAULT_LATITUDE`/
-`NEXT_PUBLIC_DEFAULT_LONGITUDE` (fallback coords when geolocation is
-denied/unavailable — currently `0,0` placeholders, TODO in the repo to set to
-the MVP launch city). `NEXT_PUBLIC_DEFAULT_TENANT_ID` (`lib/api/config.ts`'s
-`DEFAULT_TENANT_ID`) is now dead code — it existed for self-registration,
-which has been removed in favor of OTP login; nothing in the codebase
-references it anymore.
+`http://localhost:5001`, the ABP host above) is the only one left.
+`NEXT_PUBLIC_DEFAULT_TENANT_ID` (`lib/api/config.ts`'s `DEFAULT_TENANT_ID`)
+is dead code — it existed for self-registration, which has been removed in
+favor of OTP login. `NEXT_PUBLIC_DEFAULT_LATITUDE`/`NEXT_PUBLIC_DEFAULT_LONGITUDE`
+(a raw-geolocation fallback) were removed entirely once shoppers stopped
+using device GPS at all — see the `LocationPickerModal` note below.
 
 ### Structure
 
-Three separate flows, each with its own auth path:
+There is now **one login flow for everyone** — admin included, no more
+separate password login or shop-owner flow (both were removed; see Auth
+model above). `app/page.tsx` (splash, auto-redirects based on
+`AuthContext.isAuthenticated`) → `app/phone-entry/` (`PhoneEntryForm`) →
+`app/otp-verify/` (`OtpVerifyForm`) → `app/home/`. Which role you land as is
+decided by the backend per phone number, not by which page you started
+from; an admin phone number reaches `/admin/dashboard` via the account menu
+from `/home`, not a separate redirect.
 
-- **Shopper** (OTP login, no registration step): `app/page.tsx` (splash,
-  auto-redirects) → `app/phone-entry/` (`PhoneEntryForm`) → `app/otp-verify/`
-  (`OtpVerifyForm`) → `app/home/` (search + `HomeFeed` sectioned product
-  feed + `RetailerStrip` + `StoreFlyerBanner`) → `app/product/` (`?keyword=`
-  query param, see static-export note below; `ProductHeader` incl.
-  `StarRatingInput` + `ResultsList`). `app/store-flyer/` (`?storeId=`)
+- **Shopper-facing**: `app/home/` (search + `HomeFeed` sectioned product
+  feed + `RetailerStrip` + `StoreFlyerBanner`) → `app/product/`
+  (`?keyword=` query param, see static-export note below; `ProductHeader`
+  incl. `StarRatingInput` + `ResultsList`). `app/store-flyer/` (`?storeId=`)
   still exists as a standalone deep link but isn't linked from anywhere in
   the UI anymore — flyers are browsed inline on `/home` instead (see Flyer
-  feature above).
-- **Admin** (password login via `app/login/`, shared `LoginForm`):
-  `app/admin/dashboard/`, `app/admin/stores/` (list/new/edit — creating a
-  store also provisions its owner's login),
-  `app/admin/moderation/prices/` (approve/flag/reject pending submissions),
-  `app/admin/flyers/new/` (`UploadFlyerForStoreForm` — store picker, photo,
-  and a dynamic add/remove list of item rows in one submit; deliberately
-  breaks out of the app's usual 480px mobile shell into a two-column split
-  at ≥860px, since it's a back-office form rather than shopper-facing UI —
-  see its own `.module.css` comment before changing that layout),
-  `app/admin/categories/`, `app/admin/locations/`,
-  `app/admin/change-password/`.
-- **Shop owner** (same password login as admin, role-routed):
-  `app/shop-owner/dashboard/` (own store + own products/prices — no flyer
-  UI; flyer upload is admin-only), `app/shop-owner/products/new/` (create
-  product + submit its first price), `app/shop-owner/change-password/`.
+  feature above). Every search on `/home` and `/product` is scoped to a
+  **shopper-picked `Location`**, not raw device GPS: `/home` shows a
+  mandatory, non-dismissible `LocationPickerModal` (District→Location
+  select, reusing the same combobox calls the admin store form uses) the
+  first time a shopper has no location saved yet (see `lib/location/`
+  below); `LocationBar` is tappable to reopen the same picker, dismissibly,
+  to change it later. `/product` redirects to `/home` if it's ever reached
+  with no location picked (e.g. a direct deep link), since that's where the
+  mandatory picker runs.
+- **Admin** (same OTP login, routed to `/admin/*` once the JWT's role claim
+  says `Admin` — see `AdminDashboard.tsx`'s own client-side guard, on top of
+  the backend's independent `[AbpAuthorize]`): `app/admin/dashboard/` links
+  out to `app/admin/stores/` (list/new/edit — no owner provisioning any
+  more, just store fields), `app/admin/products/` + `app/admin/categories/`
+  + `app/admin/units/` (catalog master data — `CreateProductForm`/
+  `EditProductForm`/`ProductList`, `CategoryMaster`, `UnitMaster`),
+  `app/admin/prices/` (direct price CRUD against every price ever recorded
+  — `PriceList`/`AddStorePriceForm`/`EditPriceForm`, backed by
+  `PriceSubmissionAppService`'s `GetAllAsync`/`CreateApprovedAsync`/
+  `UpdateAsync`/`DeleteAsync`) *and, separately*,
+  `app/admin/moderation/prices/` (the pending-queue approve/flag/reject
+  view, `AdminPriceModerationQueue` — a different flow from `/admin/prices`,
+  not a duplicate of it), `app/admin/flyers/new/` (`UploadFlyerForStoreForm`
+  — store picker, photo, and a dynamic add/remove list of item rows in one
+  submit; deliberately breaks out of the app's usual 480px mobile shell into
+  a two-column split at ≥860px, since it's a back-office form rather than
+  shopper-facing UI — see its own `.module.css` comment before changing that
+  layout) *and, separately*, `app/admin/flyers/` (`FlyerList` — a table of
+  every uploaded flyer, newest first, for checking a flyer's photo and
+  mapped items after upload; reuses `FlyerAppService.GetRecentFlyersAsync`
+  — the same shopper-facing endpoint the home screen's carousel calls,
+  since the tenant `Admin` role already carries every `Pages_Shopper`-gated
+  permission — rather than a separate admin-only endpoint; each row's
+  "View" jumps to `/store-flyer?storeId=`, the same standalone view
+  `EditStoreForm`'s "View uploaded flyers for this store" link uses, and
+  "Add product" navigates to `app/admin/flyers/add-item/` (`?flyerId=&
+  storeId=`, same static-export query-param reasoning as `/product` and
+  `/store-flyer` — a full page rather than a `Modal`, so the flyer's photo
+  and its already-added items can sit on the left, `AddFlyerItemsForm` on
+  the right, the same "photo left, items right" split
+  `UploadFlyerForStoreForm` uses; calls `AddItemsToFlyerAsync`). Unlike the
+  initial upload form, `AddFlyerItemsForm` deliberately has **no "+ New
+  product" option** — every item added here must map to a product that
+  already exists in Manage products; the initial upload form still allows
+  creating one inline), `app/admin/locations/`,
+  `app/admin/admins/`
+  (`AdminAccountsPage` — add further admin phone numbers, see
+  `AdminAppService` above), `app/admin/users/` (`RegisteredUsersList` —
+  read-only shopper list, see `RegisteredUserAppService` above). There is no
+  `app/login/`, no `app/admin/change-password/`, and no `app/shop-owner/`
+  tree any more — all deleted along with password auth.
 
-Two routes use a `?query=param` instead of a `[dynamicSegment]`
-(`/product?keyword=`, `/store-flyer?storeId=`) — deliberate, since
+One route uses a `?query=param` instead of a `[dynamicSegment]`
+(`/product?keyword=`; `/store-flyer?storeId=` likewise) — deliberate, since
 `next.config.ts` sets `output: "export"` for static hosting (Azure Static
 Web Apps), and a dynamic segment would need every possible value known at
 build time (`generateStaticParams`), which is impossible for arbitrary
@@ -376,38 +495,55 @@ search terms/ids. Each such page wraps its `useSearchParams()` call in
 `<Suspense>`, which that hook requires under static export.
 
 `components/` has one subfolder per route area (`home/`, `product/`,
-`admin/`, `shop-owner/`, `store-flyer/`, `auth/`, `login/`, `splash/`) plus `common/` for
-shared pieces (`PriceResultCard`, `ResultsList`, `ImageUploadField` +
+`admin/`, `store-flyer/`, `auth/`, `splash/`) plus `common/` for shared
+pieces (`PriceResultCard`, `ResultsList`, `ImageUploadField` +
 `ImageCropModal` — a dependency-free canvas crop/zoom/pan step before
-upload, `StarRatingInput`, `ChangePasswordForm` — shared by admin and
-shop-owner, parameterized by `backHref`, `ErrorBanner`, `EmptyState`,
-`LoadingSpinner`). Styling is CSS Modules (`*.module.css`) colocated with
-each component, not a global CSS framework.
+upload, `StarRatingInput`, `Modal`, `ImageWithFallback`, `ErrorBanner`,
+`EmptyState`, `LoadingSpinner`). There is no `components/login/` or
+`components/shop-owner/` any more — both were deleted with password auth,
+including the `ChangePasswordForm` they used to share, since there's no
+password left to change from the UI (the backend endpoint survives as dead
+code, see `MyAccountAppService` above). Styling is CSS Modules
+(`*.module.css`) colocated with each component, not a global CSS framework.
 
-`lib/api/` has one file per backend area: `otpAuth.ts` (shopper OTP
-request/verify), `auth.ts` (admin/shop-owner password login),
-`priceCompare.ts` (search + `getHomeFeed`, incl. flyer-scoped search),
-`priceSubmission.ts` (crowdsourced submit + moderation queue),
-`adminCatalog.ts` (Category + Location CRUD, plus a read-only Product
-combobox reused by the flyer upload form's "pick an existing product"
-option), `adminStores.ts` (Store CRUD incl. owner provisioning),
-`geography.ts` (read-only Country→State→District comboboxes),
-`shopOwner.ts` (own-store/product/price endpoints), `flyer.ts`
+`lib/api/` has one file per backend area: `otpAuth.ts` (OTP request/verify —
+the only login call now, for every role), `priceCompare.ts` (search +
+`getHomeFeed`, incl. flyer-scoped search), `priceSubmission.ts`
+(crowdsourced submit, moderation queue, and admin direct-entry/CRUD — see
+`PriceSubmissionAppService` above), `adminCatalog.ts` (Category + Location
+CRUD, plus a read-only Product combobox reused by the flyer upload form's
+"pick an existing product" option), `adminStores.ts` (Store CRUD, no more
+owner provisioning), `admins.ts` (`AdminAppService` calls),
+`registeredUsers.ts` (`RegisteredUserAppService` calls), `product.ts`,
+`geography.ts` (read-only Country→State→District comboboxes), `flyer.ts`
 (`createFlyerForStore`, `getFlyersForStore`, `getRecentFlyers` — see Flyer
-feature above), `ratings.ts`, `myAccount.ts` (self-service password
-change), `image.ts` — all going through `lib/api/client.ts`'s
-`fetchJson<T>()`.
+feature above), `ratings.ts`, `image.ts` — all going through `lib/api/
+client.ts`'s `fetchJson<T>()`. There is no more `auth.ts`, `shopOwner.ts`,
+or `myAccount.ts` — all deleted with password auth.
 
-`lib/auth/` — `AuthContext.tsx` (exposes both `login` for password and
-`loginWithOtp` for OTP, plus `logout`/`isAuthenticated`/`isReady`) +
-`token-storage.ts` (single localStorage slot shared by both auth paths —
-logging into one role replaces the other's session in the same browser) +
-`jwt.ts` (`decodeJwtRoles`, used only for UI routing after password login —
-picking `/shop-owner/dashboard` vs `/admin/dashboard` — never for actual
+`lib/auth/` — `AuthContext.tsx` (`login(phoneNumber, code)` — OTP only, for
+every role — plus `logout`/`isAuthenticated`/`isAdmin`/`isReady`, where
+`isAdmin` is derived from the JWT's role claim purely for UI
+navigation/visibility) + `token-storage.ts` (single localStorage slot,
+shared by whatever role most recently logged in) + `jwt.ts`
+(`decodeJwtRoles`, used only to compute `isAdmin` — never for actual
 authorization, which the backend enforces independently via
-`[AbpAuthorize]`). `lib/geolocation/` — browser geolocation hook + fallback
-coords. `lib/hooks/useHomeFeed.ts` — loads `getHomeFeed()` on mount once
-location is ready, backing the `/home` page's default (pre-search) view.
+`[AbpAuthorize]`). `logout()` also clears the shopper's picked location
+(below) so it doesn't silently carry over to a different shopper logging in
+next on the same browser. `lib/geolocation/coordinates.ts` is now just the
+plain `Coordinates` type (`{ latitude, longitude }`) — the `useGeolocation`
+hook and its `DEFAULT_LOCATION` fallback that used to live in this folder
+were deleted outright, since nothing in the app reads raw device GPS
+anymore. `lib/location/` is the shopper equivalent of `lib/auth/`:
+`shopperLocation.ts` persists a shopper's picked `Location` (id, name,
+district, lat/lng) to a single localStorage slot, and
+`useShopperLocation.ts` is the read/write/clear hook both `/home` and
+`/product` use in place of the old `useGeolocation()` call.
+`components/home/LocationPickerModal.tsx` is the District→Location picker
+UI itself, built on the shared `Modal` component's new `dismissible` prop
+(`false` for the mandatory first-pick case). `lib/hooks/useHomeFeed.ts` —
+loads `getHomeFeed()` once a location is picked, backing the `/home` page's
+default (pre-search) view.
 
 ### Talking to the ABP backend (`lib/api/client.ts`)
 

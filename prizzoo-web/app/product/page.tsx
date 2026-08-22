@@ -3,7 +3,7 @@
 import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { useGeolocation } from "@/lib/geolocation/useGeolocation";
+import { useShopperLocation } from "@/lib/location/useShopperLocation";
 import { useComparePrices } from "@/lib/hooks/useComparePrices";
 import { ProductHeader } from "@/components/product/ProductHeader";
 import { ResultsList } from "@/components/common/ResultsList";
@@ -24,7 +24,7 @@ function ProductPageContent() {
 
   const router = useRouter();
   const { isAuthenticated, isReady } = useAuth();
-  const { coordinates, isLocating } = useGeolocation();
+  const { location, isReady: locationReady } = useShopperLocation();
   const { data, loading, error, search } = useComparePrices();
 
   useEffect(() => {
@@ -33,14 +33,23 @@ function ProductPageContent() {
     }
   }, [isReady, isAuthenticated, router]);
 
+  // No location picked yet (e.g. a deep link straight to /product before
+  // ever landing on /home) - send them to /home, which is where the
+  // mandatory location picker runs.
   useEffect(() => {
-    if (isReady && isAuthenticated && !isLocating && productName) {
-      void search(productName, coordinates, PRODUCT_DETAIL_MAX_RESULTS);
+    if (isReady && isAuthenticated && locationReady && !location) {
+      router.replace("/home");
+    }
+  }, [isReady, isAuthenticated, locationReady, location, router]);
+
+  useEffect(() => {
+    if (isReady && isAuthenticated && location && productName) {
+      void search(productName, location, PRODUCT_DETAIL_MAX_RESULTS);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isReady, isAuthenticated, isLocating, productName]);
+  }, [isReady, isAuthenticated, location, productName]);
 
-  if (!isReady || !isAuthenticated) {
+  if (!isReady || !isAuthenticated || !location) {
     return null;
   }
 
@@ -51,7 +60,7 @@ function ProductPageContent() {
         <ProductHeader productName={productName} results={data} />
         <ResultsList
           data={data}
-          loading={loading || isLocating}
+          loading={loading}
           error={error}
           emptyMessage="No stores currently carry this product."
           onSelect={() => {}}

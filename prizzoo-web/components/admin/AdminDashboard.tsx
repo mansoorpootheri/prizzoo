@@ -26,14 +26,12 @@ const SECTIONS: DashboardSection[] = [
       { label: "Manage products", href: "/admin/products" },
       { label: "Category master", href: "/admin/categories" },
       { label: "Unit master", href: "/admin/units" },
+      { label: "Flyer", href: "/admin/flyers" },
     ],
   },
   {
     heading: "Pricing",
-    links: [
-      { label: "Store prices", href: "/admin/prices" },
-      { label: "Upload a flyer for a store", href: "/admin/flyers/new" },
-    ],
+    links: [{ label: "Store prices", href: "/admin/prices" }],
   },
   {
     heading: "Master data",

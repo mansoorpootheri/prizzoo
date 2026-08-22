@@ -4,8 +4,9 @@ import { FormEvent, RefObject, useState } from "react";
 import styles from "./LocationBar.module.css";
 
 interface LocationBarProps {
-  isLocating: boolean;
-  isFallback: boolean;
+  locationLabel: string;
+  locationSubLabel: string;
+  onChangeLocation: () => void;
   searchOpen: boolean;
   onToggleSearch: () => void;
   onSearch: (keyword: string) => void;
@@ -29,8 +30,9 @@ interface LocationBarProps {
 // entry point anymore - everyone lands here, admin reaches the admin
 // screens from this menu).
 export function LocationBar({
-  isLocating,
-  isFallback,
+  locationLabel,
+  locationSubLabel,
+  onChangeLocation,
   searchOpen,
   onToggleSearch,
   onSearch,
@@ -59,15 +61,13 @@ export function LocationBar({
   return (
     <div className={styles.root}>
       <div className={styles.row}>
-        <div className={styles.left}>
+        <button type="button" className={styles.left} onClick={onChangeLocation}>
           <span className={styles.pinBadge} aria-hidden="true">📍</span>
           <div className={styles.text}>
-            <span className={styles.city}>{isLocating ? "Locating…" : "Kozhikode"}</span>
-            <span className={styles.country}>
-              {isFallback ? "Showing default results" : "India"}
-            </span>
+            <span className={styles.city}>{locationLabel}</span>
+            <span className={styles.country}>{locationSubLabel}</span>
           </div>
-        </div>
+        </button>
         <div className={styles.rightArea}>
           <div className={`${styles.icons} ${searchOpen ? styles.iconsHidden : ""}`} aria-hidden={searchOpen}>
             <button type="button" className={styles.iconButton} onClick={onToggleSearch} aria-label="Search">

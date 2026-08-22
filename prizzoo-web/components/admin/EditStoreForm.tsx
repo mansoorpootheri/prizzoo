@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getStore, updateStore } from "@/lib/api/adminStores";
 import { getKeralaDistrictsForCombobox } from "@/lib/api/geography";
 import { getCategoriesForCombobox, getLocationsForCombobox } from "@/lib/api/adminCatalog";
@@ -17,6 +18,7 @@ interface EditStoreFormProps {
 }
 
 export function EditStoreForm({ storeId, onSaved }: EditStoreFormProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -31,9 +33,11 @@ export function EditStoreForm({ storeId, onSaved }: EditStoreFormProps) {
   const [categories, setCategories] = useState<ComboboxItem[]>([]);
   const [categoryId, setCategoryId] = useState("");
   const [imageId, setImageId] = useState<string | null>(null);
+  // Read-only display of the store's current (Location-derived) coordinates
+  // - there is no way to edit these directly any more, only by picking a
+  // different Location below.
   const [latitude, setLatitude] = useState(0);
   const [longitude, setLongitude] = useState(0);
-  const [locatingNow, setLocatingNow] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [isActive, setIsActive] = useState(true);
 
@@ -96,22 +100,9 @@ export function EditStoreForm({ storeId, onSaved }: EditStoreFormProps) {
       .catch(() => setLocations([]));
   }, [districtId, districtTouched]);
 
-  function useCurrentLocation() {
-    if (typeof navigator === "undefined" || !navigator.geolocation) return;
-    setLocatingNow(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLatitude(position.coords.latitude);
-        setLongitude(position.coords.longitude);
-        setLocatingNow(false);
-      },
-      () => setLocatingNow(false),
-      { timeout: 8000 }
-    );
-  }
-
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    if (!locationId) return;
     setError(null);
     setSubmitting(true);
     try {
@@ -122,10 +113,8 @@ export function EditStoreForm({ storeId, onSaved }: EditStoreFormProps) {
         name,
         address: address || undefined,
         city: districtName,
-        locationId: locationId || undefined,
+        locationId,
         phone: phone || undefined,
-        latitude,
-        longitude,
         openingHours: openingHours || undefined,
         categoryTags: categoryName,
         imageId: imageId ?? undefined,
@@ -150,6 +139,13 @@ export function EditStoreForm({ storeId, onSaved }: EditStoreFormProps) {
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
+      <button
+        type="button"
+        className={styles.locateButton}
+        onClick={() => router.push(`/store-flyer?storeId=${storeId}`)}
+      >
+        📄 View uploaded flyers for this store
+      </button>
       <label className={styles.label}>
         Shop name
         <input className={styles.field} value={name} onChange={(e) => setName(e.target.value)} required />
@@ -186,8 +182,11 @@ export function EditStoreForm({ storeId, onSaved }: EditStoreFormProps) {
           value={locationId}
           onChange={(e) => setLocationId(e.target.value)}
           disabled={!districtId}
+          required
         >
-          <option value="">No specific location</option>
+          <option value="" disabled>
+            Select a location
+          </option>
           {locations.map((l) => (
             <option key={l.value} value={l.value}>
               {l.displayText}
@@ -221,18 +220,8 @@ export function EditStoreForm({ storeId, onSaved }: EditStoreFormProps) {
       </label>
       <ImageUploadField label="Shop photo" value={imageId} onChange={setImageId} />
       <div className={styles.locationNote}>
-        Location: {latitude.toFixed(6)}, {longitude.toFixed(6)}
-        {latitude === 0 && longitude === 0 && (
-          <div className={styles.body}>⚠ No real coordinates set - this store won&apos;t show up in nearby searches.</div>
-        )}
-        <button
-          type="button"
-          className={styles.locationButton}
-          onClick={useCurrentLocation}
-          disabled={locatingNow}
-        >
-          {locatingNow ? "Detecting…" : "📍 Use my current location"}
-        </button>
+        Currently stored coordinates: {latitude.toFixed(6)}, {longitude.toFixed(6)} (updates to match
+        whichever location is selected above, once saved)
       </div>
 
       <label className={styles.checkboxLabel}>

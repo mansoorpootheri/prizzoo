@@ -77,20 +77,19 @@ namespace EnterpriseBase.Application.Stores
         [UnitOfWork]
         public virtual async Task<StoreDto> CreateAsync(CreateStoreDto input)
         {
-            var location = await ResolveLocationOrNullAsync(input.LocationId);
+            var location = await ResolveLocationAsync(input.LocationId!.Value);
 
             var store = new Store
             {
                 Name          = input.Name,
                 Address       = input.Address,
-                // Location, when picked, is the source of truth for City -
-                // overrides any free-text City the caller also sent.
-                City          = location?.District.DistrictName ?? input.City,
-                LocationId    = location?.Id,
+                // Location is the sole source of both City and coordinates now.
+                City          = location.District.DistrictName,
+                LocationId    = location.Id,
                 Location      = location,
                 Phone         = input.Phone,
-                Latitude      = input.Latitude,
-                Longitude     = input.Longitude,
+                Latitude      = location.Latitude!.Value,
+                Longitude     = location.Longitude!.Value,
                 OpeningHours  = input.OpeningHours,
                 CategoryTags  = input.CategoryTags,
                 ImageId       = input.ImageId,
@@ -108,16 +107,16 @@ namespace EnterpriseBase.Application.Stores
         public virtual async Task<StoreDto> UpdateAsync(UpdateStoreDto input)
         {
             var store = await _repository.GetAsync(input.Id);
-            var location = await ResolveLocationOrNullAsync(input.LocationId);
+            var location = await ResolveLocationAsync(input.LocationId!.Value);
 
             store.Name          = input.Name;
             store.Address       = input.Address;
-            store.City          = location?.District.DistrictName ?? input.City;
-            store.LocationId    = location?.Id;
+            store.City          = location.District.DistrictName;
+            store.LocationId    = location.Id;
             store.Location      = location;
             store.Phone         = input.Phone;
-            store.Latitude      = input.Latitude;
-            store.Longitude     = input.Longitude;
+            store.Latitude      = location.Latitude!.Value;
+            store.Longitude     = location.Longitude!.Value;
             store.OpeningHours  = input.OpeningHours;
             store.CategoryTags  = input.CategoryTags;
             store.ImageId       = input.ImageId;
@@ -136,16 +135,19 @@ namespace EnterpriseBase.Application.Stores
             await _repository.DeleteAsync(input.Id);
         }
 
-        private async Task<Location> ResolveLocationOrNullAsync(Guid? locationId)
+        // LocationId is [Required] on both input DTOs, so locationId here is
+        // always a real value by the time this runs - a store's coordinates
+        // come from its Location, never from client-supplied lat/lng.
+        private async Task<Location> ResolveLocationAsync(Guid locationId)
         {
-            if (!locationId.HasValue)
-                return null;
-
             var location = await _locationRepository.GetAll()
                 .Include(x => x.District)
-                .FirstOrDefaultAsync(x => x.Id == locationId.Value);
+                .FirstOrDefaultAsync(x => x.Id == locationId);
             if (location == null)
                 throw new UserFriendlyException("Selected location not found.");
+            if (location.Latitude == null || location.Longitude == null)
+                throw new UserFriendlyException(
+                    "This location doesn't have coordinates set yet. Ask an admin to set this location's coordinates (Admin > Locations) before assigning it to a store.");
 
             return location;
         }

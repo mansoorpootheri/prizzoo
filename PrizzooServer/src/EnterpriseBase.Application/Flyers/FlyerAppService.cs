@@ -22,38 +22,50 @@ namespace EnterpriseBase.Application.Flyers
         /// <summary>Admin: upload a flyer photo for a store together with its item list, typed in by hand. Goes live immediately - there is no moderation step, since the admin's own submission is the trusted source (see CreateMyProductAsync for the same "pre-verified actor, no pending step" precedent elsewhere in this codebase).</summary>
         Task<FlyerDto> CreateFlyerForStoreAsync(CreateFlyerForStoreDto input);
 
+        /// <summary>Admin: add more items to a flyer that's already live - same "pre-verified actor, goes live immediately" pattern as the initial upload.</summary>
+        Task AddItemsToFlyerAsync(AddFlyerItemsDto input);
+
         /// <summary>Shopper: every flyer uploaded for a store, newest first, each with the items typed in alongside it - empty list if the store has none. The frontend browses these as a carousel.</summary>
         Task<List<FlyerDetailDto>> GetFlyersForStoreAsync(EntityDto<Guid> input);
 
         /// <summary>Shopper: the most recently uploaded flyers across every store (not scoped to one), newest first - backs the home screen's "In the spotlight"-style carousel shown before any store is selected.</summary>
         Task<List<FlyerDetailDto>> GetRecentFlyersAsync();
+
+        /// <summary>Admin: remove a flyer entirely (soft delete, same as every other FullAuditedEntity in this codebase) - its FlyerProduct links go with it (they're filtered out along with their soft-deleted parent), but any Price rows it caused to be created stay on record, since those are now independent, legitimate prices.</summary>
+        Task DeleteAsync(EntityDto<Guid> input);
     }
 
     /// <summary>
     /// Deliberately minimal (phase 1 - see the plan this shipped from):
     /// no OCR/AI extraction, no shop-owner self-upload, no separate
     /// moderation queue. An admin types the flyer's items directly; each
-    /// becomes a real Price row (Source = PriceSource.Flyer, Status =
-    /// Approved, FlyerId = this flyer) so it flows through
-    /// PriceCompareAppService's existing search/home-feed/freshness
-    /// machinery unchanged - there is no separate "flyer price" display
-    /// path. A future OCR pass can pre-fill the item list this service
-    /// accepts without changing anything here.
+    /// becomes a FlyerProduct row linking this flyer to the Product it
+    /// features - a master/detail link, not a Price row. A Price row is
+    /// only ever inserted for an item the first time that product has no
+    /// existing price at this store; otherwise the item's price is simply
+    /// whatever that product is already priced at here (see
+    /// InsertItemsAsync/BuildFlyerDetailDtosAsync), so a flyer never
+    /// creates a duplicate/second Price for a product already on record.
+    /// A future OCR pass can pre-fill the item list this service accepts
+    /// without changing anything here.
     /// </summary>
     public class FlyerAppService : ApplicationService, IFlyerAppService
     {
         private readonly IRepository<Flyer, Guid> _flyerRepository;
+        private readonly IRepository<FlyerProduct, Guid> _flyerProductRepository;
         private readonly IRepository<Store, Guid> _storeRepository;
         private readonly IRepository<Product, Guid> _productRepository;
         private readonly IRepository<Price, Guid> _priceRepository;
 
         public FlyerAppService(
             IRepository<Flyer, Guid> flyerRepository,
+            IRepository<FlyerProduct, Guid> flyerProductRepository,
             IRepository<Store, Guid> storeRepository,
             IRepository<Product, Guid> productRepository,
             IRepository<Price, Guid> priceRepository)
         {
             _flyerRepository = flyerRepository;
+            _flyerProductRepository = flyerProductRepository;
             _storeRepository = storeRepository;
             _productRepository = productRepository;
             _priceRepository = priceRepository;
@@ -80,7 +92,34 @@ namespace EnterpriseBase.Application.Flyers
             await _flyerRepository.InsertAsync(flyer);
             await CurrentUnitOfWork.SaveChangesAsync();
 
-            foreach (var item in input.Items)
+            await InsertItemsAsync(flyer, input.Items);
+            await CurrentUnitOfWork.SaveChangesAsync();
+
+            return new FlyerDto
+            {
+                Id = flyer.Id,
+                StoreId = flyer.StoreId,
+                ImageId = flyer.ImageId,
+                UploadedAt = flyer.UploadedAt,
+                ItemCount = input.Items.Count,
+            };
+        }
+
+        [AbpAuthorize(PermissionNames.Pages_PriceModeration)]
+        [UnitOfWork]
+        public virtual async Task AddItemsToFlyerAsync(AddFlyerItemsDto input)
+        {
+            var flyer = await _flyerRepository.GetAll().FirstOrDefaultAsync(x => x.Id == input.FlyerId);
+            if (flyer == null)
+                throw new UserFriendlyException("Flyer not found.");
+
+            await InsertItemsAsync(flyer, input.Items);
+            await CurrentUnitOfWork.SaveChangesAsync();
+        }
+
+        private async Task InsertItemsAsync(Flyer flyer, List<FlyerLineItemDto> items)
+        {
+            foreach (var item in items)
             {
                 Guid productId;
                 if (item.ProductId.HasValue)
@@ -97,30 +136,45 @@ namespace EnterpriseBase.Application.Flyers
                     productId = await FindOrCreateProductAsync(item.Name, item.CategoryId);
                 }
 
-                await _priceRepository.InsertAsync(new Price
+                var alreadyLinked = await _flyerProductRepository.GetAll()
+                    .AnyAsync(x => x.FlyerId == flyer.Id && x.ProductId == productId);
+                if (alreadyLinked)
+                    continue; // adding the same product to the same flyer twice is a no-op, not an error
+
+                var hasPriceAtStore = await _priceRepository.GetAll()
+                    .AnyAsync(p => p.ProductId == productId && p.StoreId == flyer.StoreId && p.Status == PriceStatus.Approved);
+
+                if (!hasPriceAtStore)
                 {
-                    ProductId = productId,
-                    StoreId = input.StoreId,
-                    Amount = item.Price,
-                    OriginalAmount = item.OriginalAmount,
-                    Currency = "INR",
-                    Source = PriceSource.Flyer,
-                    Status = PriceStatus.Approved,
-                    SubmittedByUserId = AbpSession.UserId,
-                    ObservedAt = flyer.UploadedAt,
+                    // First time this product has ever been priced at this
+                    // store - a genuinely new price, not a duplicate.
+                    await _priceRepository.InsertAsync(new Price
+                    {
+                        ProductId = productId,
+                        StoreId = flyer.StoreId,
+                        Amount = item.Price,
+                        OriginalAmount = item.OriginalAmount,
+                        Currency = "INR",
+                        Source = PriceSource.RetailerReported,
+                        Status = PriceStatus.Approved,
+                        SubmittedByUserId = AbpSession.UserId,
+                        ObservedAt = DateTime.UtcNow,
+                    });
+                }
+
+                await _flyerProductRepository.InsertAsync(new FlyerProduct
+                {
                     FlyerId = flyer.Id,
+                    ProductId = productId,
                 });
             }
-            await CurrentUnitOfWork.SaveChangesAsync();
+        }
 
-            return new FlyerDto
-            {
-                Id = flyer.Id,
-                StoreId = flyer.StoreId,
-                ImageId = flyer.ImageId,
-                UploadedAt = flyer.UploadedAt,
-                ItemCount = input.Items.Count,
-            };
+        [AbpAuthorize(PermissionNames.Pages_PriceModeration)]
+        [UnitOfWork]
+        public virtual async Task DeleteAsync(EntityDto<Guid> input)
+        {
+            await _flyerRepository.DeleteAsync(input.Id);
         }
 
         [AbpAuthorize(PermissionNames.Pages_Shopper)]
@@ -157,19 +211,44 @@ namespace EnterpriseBase.Application.Flyers
                 return new List<FlyerDetailDto>();
 
             var flyerIds = flyers.Select(x => x.Id).ToList();
-            var allItems = await _priceRepository.GetAll()
+            var storeIdByFlyerId = flyers.ToDictionary(x => x.Id, x => x.StoreId);
+
+            var links = await _flyerProductRepository.GetAll()
                 .Include(x => x.Product)
-                .Where(x => x.FlyerId.HasValue && flyerIds.Contains(x.FlyerId.Value) && x.Status == PriceStatus.Approved)
-                .Select(x => new { x.FlyerId, Item = new FlyerLineItemResultDto
-                {
-                    ProductName = x.Product.Name,
-                    Amount = x.Amount,
-                    OriginalAmount = x.OriginalAmount,
-                } })
+                .Where(x => flyerIds.Contains(x.FlyerId))
                 .ToListAsync();
-            var itemsByFlyerId = allItems
-                .GroupBy(x => x.FlyerId!.Value)
-                .ToDictionary(g => g.Key, g => g.Select(x => x.Item).ToList());
+
+            // Batch-fetch every (StoreId, ProductId) pair's latest approved
+            // price in one query, then match in memory - same "fetch broad,
+            // group in memory" style already used for ratings lookups
+            // elsewhere in this codebase, avoids one query per link.
+            var storeIds = links.Select(x => storeIdByFlyerId[x.FlyerId]).Distinct().ToList();
+            var productIds = links.Select(x => x.ProductId).Distinct().ToList();
+            var latestPriceByStoreProduct = (await _priceRepository.GetAll()
+                    .Where(p => p.Status == PriceStatus.Approved && storeIds.Contains(p.StoreId) && productIds.Contains(p.ProductId))
+                    .ToListAsync())
+                .GroupBy(p => (p.StoreId, p.ProductId))
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(p => p.ObservedAt).First());
+
+            var itemsByFlyerId = new Dictionary<Guid, List<FlyerLineItemResultDto>>();
+            foreach (var link in links)
+            {
+                var storeId = storeIdByFlyerId[link.FlyerId];
+                if (!latestPriceByStoreProduct.TryGetValue((storeId, link.ProductId), out var price))
+                    continue; // no price on record for this product at this store - shouldn't happen given the insert-time invariant, skip defensively
+
+                if (!itemsByFlyerId.TryGetValue(link.FlyerId, out var list))
+                {
+                    list = new List<FlyerLineItemResultDto>();
+                    itemsByFlyerId[link.FlyerId] = list;
+                }
+                list.Add(new FlyerLineItemResultDto
+                {
+                    ProductName = link.Product.Name,
+                    Amount = price.Amount,
+                    OriginalAmount = price.OriginalAmount,
+                });
+            }
 
             return flyers.Select(flyer => new FlyerDetailDto
             {

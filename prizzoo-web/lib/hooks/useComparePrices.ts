@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { comparePrices } from "../api/priceCompare";
-import type { Coordinates } from "../geolocation/default-location";
+import type { Coordinates } from "../geolocation/coordinates";
 import type { StorePriceResult } from "../api/types";
 import { ApiError } from "../api/client";
 

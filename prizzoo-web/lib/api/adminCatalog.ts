@@ -31,9 +31,15 @@ export function deleteCategory(id: string): Promise<void> {
   return fetchJson<void>(`${CATEGORY_BASE}/Delete?Id=${encodeURIComponent(id)}`, { method: "DELETE" });
 }
 
-// Host admin only (Pages_Locations is host-side) - a locality within a
-// Geography District, e.g. "Feroke" within "Kozhikode". Feeds the store
-// creation form's District ("City") -> Location pickers.
+// A locality within a Geography District, e.g. "Feroke" within "Kozhikode".
+// getLocations/getLocationsForCombobox are readable by any authenticated
+// user (Admin or Shopper, see LocationAppService) - they feed both the
+// admin store form's District ("City") -> Location pickers and the
+// shopper-facing LocationPickerModal. createOrEditLocation/deleteLocation
+// stay Admin-only. GetForCombobox only ever returns locations that already
+// have coordinates captured (see the backend filter) - getLocations returns
+// every location, including coordinate-less ones, since the admin list view
+// needs to show those so they can be fixed.
 const LOCATION_BASE = "/api/services/app/Location";
 
 export function getLocations(districtId?: number): Promise<AdminLocation[]> {

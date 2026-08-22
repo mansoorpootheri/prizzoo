@@ -3,6 +3,7 @@ using System;
 using EnterpriseBase.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EnterpriseBase.Migrations
 {
     [DbContext(typeof(EnterpriseBaseDbContext))]
-    partial class EnterpriseBaseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260822101943_SyncStoreCoordinatesFromLocation")]
+    partial class SyncStoreCoordinatesFromLocation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2268,49 +2271,6 @@ namespace EnterpriseBase.Migrations
                     b.ToTable("Flyers");
                 });
 
-            modelBuilder.Entity("EnterpriseBase.Pricing.FlyerProduct", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp");
-
-                    b.Property<long?>("CreatorUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("DeleterUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("DeletionTime")
-                        .HasColumnType("timestamp");
-
-                    b.Property<Guid>("FlyerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("LastModificationTime")
-                        .HasColumnType("timestamp");
-
-                    b.Property<long?>("LastModifierUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("FlyerId", "ProductId")
-                        .IsUnique();
-
-                    b.ToTable("FlyerProducts");
-                });
-
             modelBuilder.Entity("EnterpriseBase.Pricing.Price", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2334,6 +2294,9 @@ namespace EnterpriseBase.Migrations
 
                     b.Property<DateTime?>("DeletionTime")
                         .HasColumnType("timestamp");
+
+                    b.Property<Guid?>("FlyerId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -2372,6 +2335,8 @@ namespace EnterpriseBase.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("FlyerId");
 
                     b.HasIndex("StoreId");
 
@@ -3013,27 +2978,13 @@ namespace EnterpriseBase.Migrations
                     b.Navigation("Store");
                 });
 
-            modelBuilder.Entity("EnterpriseBase.Pricing.FlyerProduct", b =>
+            modelBuilder.Entity("EnterpriseBase.Pricing.Price", b =>
                 {
                     b.HasOne("EnterpriseBase.Pricing.Flyer", "Flyer")
                         .WithMany()
                         .HasForeignKey("FlyerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("EnterpriseBase.MasterData.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Flyer");
-
-                    b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("EnterpriseBase.Pricing.Price", b =>
-                {
                     b.HasOne("EnterpriseBase.MasterData.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
@@ -3045,6 +2996,8 @@ namespace EnterpriseBase.Migrations
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Flyer");
 
                     b.Navigation("Product");
 

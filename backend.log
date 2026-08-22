@@ -1,393 +1,150 @@
 Using launch settings from src\EnterpriseBase.Web.Host\Properties\launchSettings.json...
 info: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[63]
       User profile is available. Using 'C:\Users\MANSOOR CP\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
-info: Microsoft.AspNetCore.Builder.RequestLocalizationOptions[0]
-      Supported Request Localization Cultures: en,es-MX,fr,de,it,nl,pt-BR,tr,ru,ar,fa,ja,zh-Hans
-warn: Microsoft.AspNetCore.Server.Kestrel[0]
-      Overriding address(es) 'http://0.0.0.0:5001'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
-info: Microsoft.Hosting.Lifetime[14]
-      Now listening on: http://0.0.0.0:5001
-info: Microsoft.Hosting.Lifetime[0]
-      Application started. Press Ctrl+C to shut down.
-info: Microsoft.Hosting.Lifetime[0]
-      Hosting environment: Development
-info: Microsoft.Hosting.Lifetime[0]
-      Content root path: D:\prizzoo\PrizzooServer\src\EnterpriseBase.Web.Host
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 POST http://localhost:5001/api/OtpAuth/RequestOtp - application/json 28
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Controllers.OtpAuthController.RequestOtp (EnterpriseBase.Web.Core)'
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {action = "RequestOtp", controller = "OtpAuth", area = ""}. Executing controller action with signature System.Threading.Tasks.Task RequestOtp(EnterpriseBase.Models.Otp.RequestOtpModel) on controller EnterpriseBase.Controllers.OtpAuthController (EnterpriseBase.Web.Core).
-warn: EnterpriseBase.Application.Otp.NoopSmsSender[0]
-      [DEV OTP - NoopSmsSender, not a real SMS gateway] 9998887777 -> 123456
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ObjectResultExecutor[1]
-      Executing ObjectResult, writing value of type 'Abp.Web.Models.AjaxResponse'.
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Controllers.OtpAuthController.RequestOtp (EnterpriseBase.Web.Core) in 345.8274ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Controllers.OtpAuthController.RequestOtp (EnterpriseBase.Web.Core)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 POST http://localhost:5001/api/OtpAuth/RequestOtp - 200 - application/json;+charset=utf-8 445.0241ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 POST http://localhost:5001/api/OtpAuth/VerifyOtp - application/json 44
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Controllers.OtpAuthController.VerifyOtp (EnterpriseBase.Web.Core)'
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {action = "VerifyOtp", controller = "OtpAuth", area = ""}. Executing controller action with signature System.Threading.Tasks.Task`1[EnterpriseBase.Models.TokenAuth.AuthenticateResultModel] VerifyOtp(EnterpriseBase.Models.Otp.VerifyOtpModel) on controller EnterpriseBase.Controllers.OtpAuthController (EnterpriseBase.Web.Core).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ObjectResultExecutor[1]
-      Executing ObjectResult, writing value of type 'Abp.Web.Models.AjaxResponse'.
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Controllers.OtpAuthController.VerifyOtp (EnterpriseBase.Web.Core) in 416.328ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Controllers.OtpAuthController.VerifyOtp (EnterpriseBase.Web.Core)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 POST http://localhost:5001/api/OtpAuth/VerifyOtp - 200 - application/json;+charset=utf-8 423.8189ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 OPTIONS http://localhost:5001/api/OtpAuth/RequestOtp - - -
-info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
-      CORS policy execution successful.
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 OPTIONS http://localhost:5001/api/OtpAuth/RequestOtp - 204 - - 5.6019ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 POST http://localhost:5001/api/OtpAuth/RequestOtp - application/json 28
-info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
-      CORS policy execution successful.
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Controllers.OtpAuthController.RequestOtp (EnterpriseBase.Web.Core)'
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {action = "RequestOtp", controller = "OtpAuth", area = ""}. Executing controller action with signature System.Threading.Tasks.Task RequestOtp(EnterpriseBase.Models.Otp.RequestOtpModel) on controller EnterpriseBase.Controllers.OtpAuthController (EnterpriseBase.Web.Core).
-warn: EnterpriseBase.Application.Otp.NoopSmsSender[0]
-      [DEV OTP - NoopSmsSender, not a real SMS gateway] 9847055857 -> 123456
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ObjectResultExecutor[1]
-      Executing ObjectResult, writing value of type 'Abp.Web.Models.AjaxResponse'.
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Controllers.OtpAuthController.RequestOtp (EnterpriseBase.Web.Core) in 26.302ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Controllers.OtpAuthController.RequestOtp (EnterpriseBase.Web.Core)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 POST http://localhost:5001/api/OtpAuth/RequestOtp - 200 - application/json;+charset=utf-8 34.3985ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 OPTIONS http://localhost:5001/api/OtpAuth/VerifyOtp - - -
-info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
-      CORS policy execution successful.
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 OPTIONS http://localhost:5001/api/OtpAuth/VerifyOtp - 204 - - 0.6378ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 POST http://localhost:5001/api/OtpAuth/VerifyOtp - application/json 44
-info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
-      CORS policy execution successful.
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Controllers.OtpAuthController.VerifyOtp (EnterpriseBase.Web.Core)'
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {action = "VerifyOtp", controller = "OtpAuth", area = ""}. Executing controller action with signature System.Threading.Tasks.Task`1[EnterpriseBase.Models.TokenAuth.AuthenticateResultModel] VerifyOtp(EnterpriseBase.Models.Otp.VerifyOtpModel) on controller EnterpriseBase.Controllers.OtpAuthController (EnterpriseBase.Web.Core).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ObjectResultExecutor[1]
-      Executing ObjectResult, writing value of type 'Abp.Web.Models.AjaxResponse'.
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Controllers.OtpAuthController.VerifyOtp (EnterpriseBase.Web.Core) in 83.9682ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Controllers.OtpAuthController.VerifyOtp (EnterpriseBase.Web.Core)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 POST http://localhost:5001/api/OtpAuth/VerifyOtp - 200 - application/json;+charset=utf-8 87.1705ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 OPTIONS http://localhost:5001/api/services/app/PriceCompare/GetActiveCategories - - -
-info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
-      CORS policy execution successful.
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 OPTIONS http://localhost:5001/api/services/app/PriceCompare/GetActiveCategories - 204 - - 0.6016ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 OPTIONS http://localhost:5001/api/services/app/PriceCompare/GetActiveCategories - - -
-info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
-      CORS policy execution successful.
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 OPTIONS http://localhost:5001/api/services/app/PriceCompare/GetActiveCategories - 204 - - 0.7511ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 GET http://localhost:5001/api/services/app/PriceCompare/GetActiveCategories - application/json -
-info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
-      CORS policy execution successful.
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Application.Pricing.PriceCompareAppService.GetActiveCategoriesAsync (EnterpriseBase.Application)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 OPTIONS http://localhost:5001/api/services/app/PriceCompare/GetHomeFeed?latitude=11.166209454958363&longitude=75.83058454617714 - - -
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {area = "app", action = "GetActiveCategories", controller = "PriceCompare"}. Executing controller action with signature System.Threading.Tasks.Task`1[System.Collections.Generic.List`1[System.String]] GetActiveCategoriesAsync() on controller EnterpriseBase.Application.Pricing.PriceCompareAppService (EnterpriseBase.Application).
-info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
-      CORS policy execution successful.
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 OPTIONS http://localhost:5001/api/services/app/PriceCompare/GetHomeFeed?latitude=11.166209454958363&longitude=75.83058454617714 - 204 - - 0.4060ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 GET http://localhost:5001/api/services/app/PriceCompare/GetHomeFeed?latitude=11.166209454958363&longitude=75.83058454617714 - application/json -
-info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
-      CORS policy execution successful.
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Application.Pricing.PriceCompareAppService.GetHomeFeedAsync (EnterpriseBase.Application)'
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {area = "app", action = "GetHomeFeed", controller = "PriceCompare"}. Executing controller action with signature System.Threading.Tasks.Task`1[System.Collections.Generic.List`1[EnterpriseBase.Application.Pricing.Dto.HomeFeedSectionDto]] GetHomeFeedAsync(EnterpriseBase.Application.Pricing.Dto.HomeFeedInputDto) on controller EnterpriseBase.Application.Pricing.PriceCompareAppService (EnterpriseBase.Application).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ObjectResultExecutor[1]
-      Executing ObjectResult, writing value of type 'Abp.Web.Models.AjaxResponse'.
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Application.Pricing.PriceCompareAppService.GetActiveCategoriesAsync (EnterpriseBase.Application) in 246.5837ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Application.Pricing.PriceCompareAppService.GetActiveCategoriesAsync (EnterpriseBase.Application)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 GET http://localhost:5001/api/services/app/PriceCompare/GetActiveCategories - 200 - application/json;+charset=utf-8 359.0984ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 GET http://localhost:5001/api/services/app/PriceCompare/GetActiveCategories - application/json -
-info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
-      CORS policy execution successful.
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Application.Pricing.PriceCompareAppService.GetActiveCategoriesAsync (EnterpriseBase.Application)'
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {area = "app", action = "GetActiveCategories", controller = "PriceCompare"}. Executing controller action with signature System.Threading.Tasks.Task`1[System.Collections.Generic.List`1[System.String]] GetActiveCategoriesAsync() on controller EnterpriseBase.Application.Pricing.PriceCompareAppService (EnterpriseBase.Application).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ObjectResultExecutor[1]
-      Executing ObjectResult, writing value of type 'Abp.Web.Models.AjaxResponse'.
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Application.Pricing.PriceCompareAppService.GetActiveCategoriesAsync (EnterpriseBase.Application) in 16.2835ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Application.Pricing.PriceCompareAppService.GetActiveCategoriesAsync (EnterpriseBase.Application)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 GET http://localhost:5001/api/services/app/PriceCompare/GetActiveCategories - 200 - application/json;+charset=utf-8 27.4861ms
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ObjectResultExecutor[1]
-      Executing ObjectResult, writing value of type 'Abp.Web.Models.AjaxResponse'.
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Application.Pricing.PriceCompareAppService.GetHomeFeedAsync (EnterpriseBase.Application) in 863.2406ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Application.Pricing.PriceCompareAppService.GetHomeFeedAsync (EnterpriseBase.Application)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 GET http://localhost:5001/api/services/app/PriceCompare/GetHomeFeed?latitude=11.166209454958363&longitude=75.83058454617714 - 200 - application/json;+charset=utf-8 889.4647ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 GET http://localhost:5001/api/Image/bd0ced82-4e6f-4a77-a3d5-3a231a5c124b - - -
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 GET http://localhost:5001/api/Image/51cd7770-ae3b-89c9-713b-3a231a5c8a56 - - -
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 GET http://localhost:5001/api/Image/0537788c-d5df-b4bf-802f-3a231dc5ed4d - - -
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 GET http://localhost:5001/api/Image/d83fb0c6-1556-f66f-7cf4-3a231db3c352 - - -
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 GET http://localhost:5001/api/Image/c320616b-5083-9b51-de47-3a231df6edbf - - -
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 GET http://localhost:5001/api/Image/2f5b3954-1d00-9055-2189-3a231dc510e1 - - -
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {action = "Get", controller = "Image", area = ""}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Get(System.Guid) on controller EnterpriseBase.Web.Host.Controllers.ImageController (EnterpriseBase.Web.Host).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {action = "Get", controller = "Image", area = ""}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Get(System.Guid) on controller EnterpriseBase.Web.Host.Controllers.ImageController (EnterpriseBase.Web.Host).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {action = "Get", controller = "Image", area = ""}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Get(System.Guid) on controller EnterpriseBase.Web.Host.Controllers.ImageController (EnterpriseBase.Web.Host).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {action = "Get", controller = "Image", area = ""}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Get(System.Guid) on controller EnterpriseBase.Web.Host.Controllers.ImageController (EnterpriseBase.Web.Host).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {action = "Get", controller = "Image", area = ""}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Get(System.Guid) on controller EnterpriseBase.Web.Host.Controllers.ImageController (EnterpriseBase.Web.Host).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {action = "Get", controller = "Image", area = ""}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Get(System.Guid) on controller EnterpriseBase.Web.Host.Controllers.ImageController (EnterpriseBase.Web.Host).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.FileContentResultExecutor[2]
-      Executing FileContentResult, sending file with download name '' ...
-info: Microsoft.AspNetCore.Mvc.Infrastructure.FileContentResultExecutor[2]
-      Executing FileContentResult, sending file with download name '' ...
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host) in 202.284ms
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host) in 202.544ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 GET http://localhost:5001/api/Image/d83fb0c6-1556-f66f-7cf4-3a231db3c352 - 200 16782 image/png 214.9573ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 GET http://localhost:5001/api/Image/2f5b3954-1d00-9055-2189-3a231dc510e1 - 200 32697 image/jpeg 214.5150ms
-info: Microsoft.AspNetCore.Mvc.Infrastructure.FileContentResultExecutor[2]
-      Executing FileContentResult, sending file with download name '' ...
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host) in 204.8563ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 GET http://localhost:5001/api/Image/bd0ced82-4e6f-4a77-a3d5-3a231a5c124b - 200 68 image/png 217.3650ms
-info: Microsoft.AspNetCore.Mvc.Infrastructure.FileContentResultExecutor[2]
-      Executing FileContentResult, sending file with download name '' ...
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host) in 209.2906ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 GET http://localhost:5001/api/Image/51cd7770-ae3b-89c9-713b-3a231a5c8a56 - 200 70 image/png 222.2406ms
-info: Microsoft.AspNetCore.Mvc.Infrastructure.FileContentResultExecutor[2]
-      Executing FileContentResult, sending file with download name '' ...
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host) in 231.7885ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 GET http://localhost:5001/api/Image/0537788c-d5df-b4bf-802f-3a231dc5ed4d - 200 45656 image/jpeg 243.9718ms
-info: Microsoft.AspNetCore.Mvc.Infrastructure.FileContentResultExecutor[2]
-      Executing FileContentResult, sending file with download name '' ...
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host) in 315.48ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 GET http://localhost:5001/api/Image/c320616b-5083-9b51-de47-3a231df6edbf - 200 34448 image/jpeg 327.3079ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 GET http://localhost:5001/api/Image/bd0ced82-4e6f-4a77-a3d5-3a231a5c124b - - -
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 GET http://localhost:5001/api/Image/51cd7770-ae3b-89c9-713b-3a231a5c8a56 - - -
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {action = "Get", controller = "Image", area = ""}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Get(System.Guid) on controller EnterpriseBase.Web.Host.Controllers.ImageController (EnterpriseBase.Web.Host).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {action = "Get", controller = "Image", area = ""}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Get(System.Guid) on controller EnterpriseBase.Web.Host.Controllers.ImageController (EnterpriseBase.Web.Host).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.FileContentResultExecutor[2]
-      Executing FileContentResult, sending file with download name '' ...
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host) in 18.2397ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 GET http://localhost:5001/api/Image/51cd7770-ae3b-89c9-713b-3a231a5c8a56 - 200 70 image/png 21.4226ms
-info: Microsoft.AspNetCore.Mvc.Infrastructure.FileContentResultExecutor[2]
-      Executing FileContentResult, sending file with download name '' ...
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host) in 20.9434ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 GET http://localhost:5001/api/Image/bd0ced82-4e6f-4a77-a3d5-3a231a5c124b - 200 68 image/png 24.3290ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 OPTIONS http://localhost:5001/api/services/app/PriceCompare/ComparePrices - - -
-info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
-      CORS policy execution successful.
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 OPTIONS http://localhost:5001/api/services/app/PriceCompare/ComparePrices - 204 - - 0.3205ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 POST http://localhost:5001/api/services/app/PriceCompare/ComparePrices - application/json 126
-info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
-      CORS policy execution successful.
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Application.Pricing.PriceCompareAppService.ComparePricesAsync (EnterpriseBase.Application)'
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {area = "app", action = "ComparePrices", controller = "PriceCompare"}. Executing controller action with signature System.Threading.Tasks.Task`1[System.Collections.Generic.List`1[EnterpriseBase.Application.Pricing.Dto.StorePriceResultDto]] ComparePricesAsync(EnterpriseBase.Application.Pricing.Dto.ComparePricesInputDto) on controller EnterpriseBase.Application.Pricing.PriceCompareAppService (EnterpriseBase.Application).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ObjectResultExecutor[1]
-      Executing ObjectResult, writing value of type 'Abp.Web.Models.AjaxResponse'.
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Application.Pricing.PriceCompareAppService.ComparePricesAsync (EnterpriseBase.Application) in 77.0869ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Application.Pricing.PriceCompareAppService.ComparePricesAsync (EnterpriseBase.Application)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 POST http://localhost:5001/api/services/app/PriceCompare/ComparePrices - 200 - application/json;+charset=utf-8 92.2943ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 POST http://localhost:5001/api/services/app/PriceCompare/ComparePrices - application/json 126
-info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
-      CORS policy execution successful.
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Application.Pricing.PriceCompareAppService.ComparePricesAsync (EnterpriseBase.Application)'
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {area = "app", action = "ComparePrices", controller = "PriceCompare"}. Executing controller action with signature System.Threading.Tasks.Task`1[System.Collections.Generic.List`1[EnterpriseBase.Application.Pricing.Dto.StorePriceResultDto]] ComparePricesAsync(EnterpriseBase.Application.Pricing.Dto.ComparePricesInputDto) on controller EnterpriseBase.Application.Pricing.PriceCompareAppService (EnterpriseBase.Application).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ObjectResultExecutor[1]
-      Executing ObjectResult, writing value of type 'Abp.Web.Models.AjaxResponse'.
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Application.Pricing.PriceCompareAppService.ComparePricesAsync (EnterpriseBase.Application) in 34.3026ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Application.Pricing.PriceCompareAppService.ComparePricesAsync (EnterpriseBase.Application)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 POST http://localhost:5001/api/services/app/PriceCompare/ComparePrices - 200 - application/json;+charset=utf-8 40.4466ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 POST http://localhost:5001/api/services/app/PriceCompare/ComparePrices - application/json 126
-info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
-      CORS policy execution successful.
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Application.Pricing.PriceCompareAppService.ComparePricesAsync (EnterpriseBase.Application)'
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {area = "app", action = "ComparePrices", controller = "PriceCompare"}. Executing controller action with signature System.Threading.Tasks.Task`1[System.Collections.Generic.List`1[EnterpriseBase.Application.Pricing.Dto.StorePriceResultDto]] ComparePricesAsync(EnterpriseBase.Application.Pricing.Dto.ComparePricesInputDto) on controller EnterpriseBase.Application.Pricing.PriceCompareAppService (EnterpriseBase.Application).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ObjectResultExecutor[1]
-      Executing ObjectResult, writing value of type 'Abp.Web.Models.AjaxResponse'.
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Application.Pricing.PriceCompareAppService.ComparePricesAsync (EnterpriseBase.Application) in 21.3021ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Application.Pricing.PriceCompareAppService.ComparePricesAsync (EnterpriseBase.Application)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 POST http://localhost:5001/api/services/app/PriceCompare/ComparePrices - 200 - application/json;+charset=utf-8 30.9414ms
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 GET http://localhost:5001/api/Image/0537788c-d5df-b4bf-802f-3a231dc5ed4d - - -
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 GET http://localhost:5001/api/Image/c320616b-5083-9b51-de47-3a231df6edbf - - -
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 GET http://localhost:5001/api/Image/bd0ced82-4e6f-4a77-a3d5-3a231a5c124b - - -
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 GET http://localhost:5001/api/Image/51cd7770-ae3b-89c9-713b-3a231a5c8a56 - - -
-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/1.1 GET http://localhost:5001/api/Image/2f5b3954-1d00-9055-2189-3a231dc510e1 - - -
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {action = "Get", controller = "Image", area = ""}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Get(System.Guid) on controller EnterpriseBase.Web.Host.Controllers.ImageController (EnterpriseBase.Web.Host).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {action = "Get", controller = "Image", area = ""}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Get(System.Guid) on controller EnterpriseBase.Web.Host.Controllers.ImageController (EnterpriseBase.Web.Host).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {action = "Get", controller = "Image", area = ""}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Get(System.Guid) on controller EnterpriseBase.Web.Host.Controllers.ImageController (EnterpriseBase.Web.Host).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {action = "Get", controller = "Image", area = ""}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Get(System.Guid) on controller EnterpriseBase.Web.Host.Controllers.ImageController (EnterpriseBase.Web.Host).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
-      Route matched with {action = "Get", controller = "Image", area = ""}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Get(System.Guid) on controller EnterpriseBase.Web.Host.Controllers.ImageController (EnterpriseBase.Web.Host).
-info: Microsoft.AspNetCore.Mvc.Infrastructure.FileContentResultExecutor[2]
-      Executing FileContentResult, sending file with download name '' ...
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host) in 16.0521ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 GET http://localhost:5001/api/Image/c320616b-5083-9b51-de47-3a231df6edbf - 200 34448 image/jpeg 19.5130ms
-info: Microsoft.AspNetCore.Mvc.Infrastructure.FileContentResultExecutor[2]
-      Executing FileContentResult, sending file with download name '' ...
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host) in 39.1637ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 GET http://localhost:5001/api/Image/0537788c-d5df-b4bf-802f-3a231dc5ed4d - 200 45656 image/jpeg 42.7000ms
-info: Microsoft.AspNetCore.Mvc.Infrastructure.FileContentResultExecutor[2]
-      Executing FileContentResult, sending file with download name '' ...
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host) in 40.4433ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 GET http://localhost:5001/api/Image/bd0ced82-4e6f-4a77-a3d5-3a231a5c124b - 200 68 image/png 44.1537ms
-info: Microsoft.AspNetCore.Mvc.Infrastructure.FileContentResultExecutor[2]
-      Executing FileContentResult, sending file with download name '' ...
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host) in 41.7051ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 GET http://localhost:5001/api/Image/51cd7770-ae3b-89c9-713b-3a231a5c8a56 - 200 70 image/png 45.7326ms
-info: Microsoft.AspNetCore.Mvc.Infrastructure.FileContentResultExecutor[2]
-      Executing FileContentResult, sending file with download name '' ...
-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
-      Executed action EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host) in 44.7403ms
-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'EnterpriseBase.Web.Host.Controllers.ImageController.Get (EnterpriseBase.Web.Host)'
-info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/1.1 GET http://localhost:5001/api/Image/2f5b3954-1d00-9055-2189-3a231dc510e1 - 200 32697 image/jpeg 49.1749ms
+fail: Microsoft.EntityFrameworkCore.Database.Connection[20004]
+      An error occurred using the connection to database 'PrizzooDB' on server 'tcp://localhost:5432'.
+crit: Microsoft.AspNetCore.Hosting.Diagnostics[6]
+      Application startup exception
+      Npgsql.PostgresException (0x80004005): 3D000: database "PrizzooDB" does not exist
+         at Npgsql.Internal.NpgsqlConnector.ReadMessageLong(Boolean async, DataRowLoadingMode dataRowLoadingMode, Boolean readingNotifications, Boolean isReadingPrependedMessage)
+         at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+         at Npgsql.Internal.NpgsqlConnector.<Open>g__OpenCore|214_1(NpgsqlConnector conn, SslMode sslMode, NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+         at Npgsql.Internal.NpgsqlConnector.Open(NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+         at Npgsql.PoolingDataSource.OpenNewConnector(NpgsqlConnection conn, NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+         at Npgsql.PoolingDataSource.<Get>g__RentAsync|33_0(NpgsqlConnection conn, NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+         at Npgsql.NpgsqlConnection.<Open>g__OpenAsync|42_0(Boolean async, CancellationToken cancellationToken)
+         at Npgsql.NpgsqlConnection.Open()
+         at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.OpenDbConnection(Boolean errorsExpected)
+         at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.OpenInternal(Boolean errorsExpected)
+         at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.Open(Boolean errorsExpected)
+         at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.BeginTransaction(IsolationLevel isolationLevel)
+         at Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.<>c__DisplayClass28_0.<BeginTransaction>b__0(DatabaseFacade database)
+         at Microsoft.EntityFrameworkCore.ExecutionStrategyExtensions.<>c__DisplayClass12_0`2.<Execute>b__0(DbContext _, TState s)
+         at Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.NpgsqlExecutionStrategy.Execute[TState,TResult](TState state, Func`3 operation, Func`3 verifySucceeded)
+         at Microsoft.EntityFrameworkCore.ExecutionStrategyExtensions.Execute[TState,TResult](IExecutionStrategy strategy, TState state, Func`2 operation, Func`2 verifySucceeded)
+         at Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.BeginTransaction(DatabaseFacade databaseFacade, IsolationLevel isolationLevel)
+         at Abp.EntityFrameworkCore.Uow.DbContextEfCoreTransactionStrategy.CreateDbContext[TDbContext](String connectionString, IDbContextResolver dbContextResolver)
+         at Abp.EntityFrameworkCore.Uow.EfCoreUnitOfWork.GetOrCreateDbContext[TDbContext](Nullable`1 multiTenancySide, String name)
+         at Abp.EntityFrameworkCore.Uow.UnitOfWorkExtensions.GetDbContext[TDbContext](IActiveUnitOfWork unitOfWork, Nullable`1 multiTenancySide, String name)
+         at EnterpriseBase.EntityFrameworkCore.Seed.SeedHelper.WithDbContext[TDbContext](IIocResolver iocResolver, Action`1 contextAction) in D:\prizzoo\PrizzooServer\src\EnterpriseBase.EntityFrameworkCore\EntityFrameworkCore\Seed\SeedHelper.cs:line 49
+         at EnterpriseBase.EntityFrameworkCore.Seed.SeedHelper.SeedHostDb(IIocResolver iocResolver) in D:\prizzoo\PrizzooServer\src\EnterpriseBase.EntityFrameworkCore\EntityFrameworkCore\Seed\SeedHelper.cs:line 18
+         at EnterpriseBase.EntityFrameworkCore.EnterpriseBaseEntityFrameworkModule.PostInitialize() in D:\prizzoo\PrizzooServer\src\EnterpriseBase.EntityFrameworkCore\EntityFrameworkCore\EnterpriseBaseEntityFrameworkModule.cs:line 48
+         at Abp.Modules.AbpModuleManager.<>c.<StartModules>b__15_2(AbpModuleInfo module)
+         at System.Collections.Generic.List`1.ForEach(Action`1 action)
+         at Abp.Modules.AbpModuleManager.StartModules()
+         at Abp.AbpBootstrapper.Initialize()
+         at Abp.AspNetCore.AbpApplicationBuilderExtensions.InitializeAbp(IApplicationBuilder app)
+         at Abp.AspNetCore.AbpApplicationBuilderExtensions.UseAbp(IApplicationBuilder app, Action`1 optionsAction)
+         at EnterpriseBase.Web.Host.Startup.Startup.Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory) in D:\prizzoo\PrizzooServer\src\EnterpriseBase.Web.Host\Startup\Startup.cs:line 87
+         at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+         at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+         at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+         at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+         at Microsoft.AspNetCore.Hosting.ConfigureBuilder.Invoke(Object instance, IApplicationBuilder builder)
+         at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+        Exception data:
+          Severity: FATAL
+          SqlState: 3D000
+          MessageText: database "PrizzooDB" does not exist
+          File: postinit.c
+          Line: 1016
+          Routine: InitPostgres
+fail: Microsoft.Extensions.Hosting.Internal.Host[11]
+      Hosting failed to start
+      Npgsql.PostgresException (0x80004005): 3D000: database "PrizzooDB" does not exist
+         at Npgsql.Internal.NpgsqlConnector.ReadMessageLong(Boolean async, DataRowLoadingMode dataRowLoadingMode, Boolean readingNotifications, Boolean isReadingPrependedMessage)
+         at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+         at Npgsql.Internal.NpgsqlConnector.<Open>g__OpenCore|214_1(NpgsqlConnector conn, SslMode sslMode, NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+         at Npgsql.Internal.NpgsqlConnector.Open(NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+         at Npgsql.PoolingDataSource.OpenNewConnector(NpgsqlConnection conn, NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+         at Npgsql.PoolingDataSource.<Get>g__RentAsync|33_0(NpgsqlConnection conn, NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+         at Npgsql.NpgsqlConnection.<Open>g__OpenAsync|42_0(Boolean async, CancellationToken cancellationToken)
+         at Npgsql.NpgsqlConnection.Open()
+         at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.OpenDbConnection(Boolean errorsExpected)
+         at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.OpenInternal(Boolean errorsExpected)
+         at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.Open(Boolean errorsExpected)
+         at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.BeginTransaction(IsolationLevel isolationLevel)
+         at Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.<>c__DisplayClass28_0.<BeginTransaction>b__0(DatabaseFacade database)
+         at Microsoft.EntityFrameworkCore.ExecutionStrategyExtensions.<>c__DisplayClass12_0`2.<Execute>b__0(DbContext _, TState s)
+         at Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.NpgsqlExecutionStrategy.Execute[TState,TResult](TState state, Func`3 operation, Func`3 verifySucceeded)
+         at Microsoft.EntityFrameworkCore.ExecutionStrategyExtensions.Execute[TState,TResult](IExecutionStrategy strategy, TState state, Func`2 operation, Func`2 verifySucceeded)
+         at Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.BeginTransaction(DatabaseFacade databaseFacade, IsolationLevel isolationLevel)
+         at Abp.EntityFrameworkCore.Uow.DbContextEfCoreTransactionStrategy.CreateDbContext[TDbContext](String connectionString, IDbContextResolver dbContextResolver)
+         at Abp.EntityFrameworkCore.Uow.EfCoreUnitOfWork.GetOrCreateDbContext[TDbContext](Nullable`1 multiTenancySide, String name)
+         at Abp.EntityFrameworkCore.Uow.UnitOfWorkExtensions.GetDbContext[TDbContext](IActiveUnitOfWork unitOfWork, Nullable`1 multiTenancySide, String name)
+         at EnterpriseBase.EntityFrameworkCore.Seed.SeedHelper.WithDbContext[TDbContext](IIocResolver iocResolver, Action`1 contextAction) in D:\prizzoo\PrizzooServer\src\EnterpriseBase.EntityFrameworkCore\EntityFrameworkCore\Seed\SeedHelper.cs:line 49
+         at EnterpriseBase.EntityFrameworkCore.Seed.SeedHelper.SeedHostDb(IIocResolver iocResolver) in D:\prizzoo\PrizzooServer\src\EnterpriseBase.EntityFrameworkCore\EntityFrameworkCore\Seed\SeedHelper.cs:line 18
+         at EnterpriseBase.EntityFrameworkCore.EnterpriseBaseEntityFrameworkModule.PostInitialize() in D:\prizzoo\PrizzooServer\src\EnterpriseBase.EntityFrameworkCore\EntityFrameworkCore\EnterpriseBaseEntityFrameworkModule.cs:line 48
+         at Abp.Modules.AbpModuleManager.<>c.<StartModules>b__15_2(AbpModuleInfo module)
+         at System.Collections.Generic.List`1.ForEach(Action`1 action)
+         at Abp.Modules.AbpModuleManager.StartModules()
+         at Abp.AbpBootstrapper.Initialize()
+         at Abp.AspNetCore.AbpApplicationBuilderExtensions.InitializeAbp(IApplicationBuilder app)
+         at Abp.AspNetCore.AbpApplicationBuilderExtensions.UseAbp(IApplicationBuilder app, Action`1 optionsAction)
+         at EnterpriseBase.Web.Host.Startup.Startup.Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory) in D:\prizzoo\PrizzooServer\src\EnterpriseBase.Web.Host\Startup\Startup.cs:line 87
+         at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+         at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+         at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+         at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+         at Microsoft.AspNetCore.Hosting.ConfigureBuilder.Invoke(Object instance, IApplicationBuilder builder)
+         at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+         at Microsoft.Extensions.Hosting.Internal.Host.<StartAsync>b__14_1(IHostedService service, CancellationToken token)
+         at Microsoft.Extensions.Hosting.Internal.Host.ForeachService[T](IEnumerable`1 services, CancellationToken token, Boolean concurrent, Boolean abortOnFirstException, List`1 exceptions, Func`3 operation)
+        Exception data:
+          Severity: FATAL
+          SqlState: 3D000
+          MessageText: database "PrizzooDB" does not exist
+          File: postinit.c
+          Line: 1016
+          Routine: InitPostgres
+Unhandled exception. Npgsql.PostgresException (0x80004005): 3D000: database "PrizzooDB" does not exist
+   at Npgsql.Internal.NpgsqlConnector.ReadMessageLong(Boolean async, DataRowLoadingMode dataRowLoadingMode, Boolean readingNotifications, Boolean isReadingPrependedMessage)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at Npgsql.Internal.NpgsqlConnector.<Open>g__OpenCore|214_1(NpgsqlConnector conn, SslMode sslMode, NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+   at Npgsql.Internal.NpgsqlConnector.Open(NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+   at Npgsql.PoolingDataSource.OpenNewConnector(NpgsqlConnection conn, NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+   at Npgsql.PoolingDataSource.<Get>g__RentAsync|33_0(NpgsqlConnection conn, NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlConnection.<Open>g__OpenAsync|42_0(Boolean async, CancellationToken cancellationToken)
+   at Npgsql.NpgsqlConnection.Open()
+   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.OpenDbConnection(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.OpenInternal(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.Open(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.BeginTransaction(IsolationLevel isolationLevel)
+   at Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.<>c__DisplayClass28_0.<BeginTransaction>b__0(DatabaseFacade database)
+   at Microsoft.EntityFrameworkCore.ExecutionStrategyExtensions.<>c__DisplayClass12_0`2.<Execute>b__0(DbContext _, TState s)
+   at Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.NpgsqlExecutionStrategy.Execute[TState,TResult](TState state, Func`3 operation, Func`3 verifySucceeded)
+   at Microsoft.EntityFrameworkCore.ExecutionStrategyExtensions.Execute[TState,TResult](IExecutionStrategy strategy, TState state, Func`2 operation, Func`2 verifySucceeded)
+   at Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.BeginTransaction(DatabaseFacade databaseFacade, IsolationLevel isolationLevel)
+   at Abp.EntityFrameworkCore.Uow.DbContextEfCoreTransactionStrategy.CreateDbContext[TDbContext](String connectionString, IDbContextResolver dbContextResolver)
+   at Abp.EntityFrameworkCore.Uow.EfCoreUnitOfWork.GetOrCreateDbContext[TDbContext](Nullable`1 multiTenancySide, String name)
+   at Abp.EntityFrameworkCore.Uow.UnitOfWorkExtensions.GetDbContext[TDbContext](IActiveUnitOfWork unitOfWork, Nullable`1 multiTenancySide, String name)
+   at EnterpriseBase.EntityFrameworkCore.Seed.SeedHelper.WithDbContext[TDbContext](IIocResolver iocResolver, Action`1 contextAction) in D:\prizzoo\PrizzooServer\src\EnterpriseBase.EntityFrameworkCore\EntityFrameworkCore\Seed\SeedHelper.cs:line 49
+   at EnterpriseBase.EntityFrameworkCore.Seed.SeedHelper.SeedHostDb(IIocResolver iocResolver) in D:\prizzoo\PrizzooServer\src\EnterpriseBase.EntityFrameworkCore\EntityFrameworkCore\Seed\SeedHelper.cs:line 18
+   at EnterpriseBase.EntityFrameworkCore.EnterpriseBaseEntityFrameworkModule.PostInitialize() in D:\prizzoo\PrizzooServer\src\EnterpriseBase.EntityFrameworkCore\EntityFrameworkCore\EnterpriseBaseEntityFrameworkModule.cs:line 48
+   at Abp.Modules.AbpModuleManager.<>c.<StartModules>b__15_2(AbpModuleInfo module)
+   at System.Collections.Generic.List`1.ForEach(Action`1 action)
+   at Abp.Modules.AbpModuleManager.StartModules()
+   at Abp.AbpBootstrapper.Initialize()
+   at Abp.AspNetCore.AbpApplicationBuilderExtensions.InitializeAbp(IApplicationBuilder app)
+   at Abp.AspNetCore.AbpApplicationBuilderExtensions.UseAbp(IApplicationBuilder app, Action`1 optionsAction)
+   at EnterpriseBase.Web.Host.Startup.Startup.Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory) in D:\prizzoo\PrizzooServer\src\EnterpriseBase.Web.Host\Startup\Startup.cs:line 87
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at Microsoft.AspNetCore.Hosting.ConfigureBuilder.Invoke(Object instance, IApplicationBuilder builder)
+   at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+   at Microsoft.Extensions.Hosting.Internal.Host.<StartAsync>b__14_1(IHostedService service, CancellationToken token)
+   at Microsoft.Extensions.Hosting.Internal.Host.ForeachService[T](IEnumerable`1 services, CancellationToken token, Boolean concurrent, Boolean abortOnFirstException, List`1 exceptions, Func`3 operation)
+   at Microsoft.Extensions.Hosting.Internal.Host.StartAsync(CancellationToken cancellationToken)
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.Run(IHost host)
+   at EnterpriseBase.Web.Host.Startup.Program.Main(String[] args) in D:\prizzoo\PrizzooServer\src\EnterpriseBase.Web.Host\Startup\Program.cs:line 14
+  Exception data:
+    Severity: FATAL
+    SqlState: 3D000
+    MessageText: database "PrizzooDB" does not exist
+    File: postinit.c
+    Line: 1016
+    Routine: InitPostgres

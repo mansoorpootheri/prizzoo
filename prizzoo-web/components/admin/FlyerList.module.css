@@ -1,8 +1,5 @@
-/* This admin page deliberately breaks out of the app's usual 480px mobile
-   shell (see app/globals.css's .appShell comment) - it's a back-office
-   ERP-style table meant to stay scannable as the catalog grows large, not
-   part of the shopper mobile experience. See UploadFlyerForStoreForm's
-   module CSS for the same precedent. */
+/* Same back-office table pattern as ProductList.module.css/PriceList.module.css
+   - a scannable table rather than the shopper mobile shell. */
 .page {
   width: 100%;
   max-width: 1200px;
@@ -64,38 +61,9 @@
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-}
-
-.searchRow {
-  display: flex;
-  gap: 10px;
-  max-width: 420px;
-}
-
-.searchField {
-  flex: 1;
-  padding: 12px 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-raised);
-  color: var(--color-foreground);
-  font-size: 14px;
-}
-
-.searchField:focus {
-  outline: none;
-  border-color: var(--color-accent);
-}
-
-.secondary {
-  padding: 12px 18px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-foreground);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
 }
 
 .tableWrap {
@@ -142,20 +110,20 @@
 }
 
 .thImage {
-  width: 48px;
+  width: 64px;
 }
 
 .thumb {
-  width: 36px;
-  height: 36px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--radius-sm, 6px);
   object-fit: cover;
   display: block;
 }
 
 .thumbPlaceholder {
-  width: 36px;
-  height: 36px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--radius-sm, 6px);
   background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
@@ -170,24 +138,9 @@
   color: var(--color-foreground-muted);
 }
 
-.badgeActive,
-.badgeInactive {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.badgeActive {
-  background: rgba(0, 219, 116, 0.15);
-  color: var(--color-accent);
-}
-
-.badgeInactive {
-  background: rgba(255, 92, 92, 0.12);
-  color: var(--color-danger);
+.itemsPreview {
+  color: var(--color-foreground-muted);
+  font-size: 12px;
 }
 
 .thActions {
@@ -199,8 +152,7 @@
   text-align: right;
 }
 
-.editButton,
-.deleteButton {
+.viewButton {
   padding: 6px 12px;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
@@ -212,10 +164,20 @@
   margin-left: 8px;
 }
 
+.viewButton:first-child {
+  margin-left: 0;
+}
+
 .deleteButton {
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 92, 92, 0.4);
   background: rgba(255, 92, 92, 0.12);
-  border-color: rgba(255, 92, 92, 0.4);
   color: var(--color-danger);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 8px;
 }
 
 .deleteButton:disabled {

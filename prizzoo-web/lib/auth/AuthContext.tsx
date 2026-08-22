@@ -10,6 +10,7 @@ import {
 import { verifyOtp } from "../api/otpAuth";
 import { clearToken, getToken, setToken } from "./token-storage";
 import { decodeJwtRoles } from "./jwt";
+import { clearShopperLocation } from "../location/shopperLocation";
 
 interface AuthContextValue {
   isAuthenticated: boolean;
@@ -58,6 +59,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     clearToken();
+    // A picked location is shopper-specific - don't let it silently carry
+    // over to a different shopper who logs in next on this browser/device.
+    clearShopperLocation();
     setIsAuthenticated(false);
     setIsAdmin(false);
   }, []);

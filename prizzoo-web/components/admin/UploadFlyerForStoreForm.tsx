@@ -15,17 +15,21 @@ import { ImageUploadField } from "@/components/common/ImageUploadField";
 import fieldStyles from "./AdminForm.module.css";
 import styles from "./UploadFlyerForStoreForm.module.css";
 
-const NEW_PRODUCT_VALUE = "";
+// Distinct from "" (unselected/no choice made yet) so the dropdown can
+// start on a neutral "Select a product" placeholder rather than defaulting
+// straight into "+ New product" - most flyer items map to an existing
+// product, so that shouldn't be the default state.
+const NEW_PRODUCT_VALUE = "__new__";
 
 interface ItemRow {
-  productId: string; // NEW_PRODUCT_VALUE means "create a new product"
+  productId: string; // "" = nothing picked yet, NEW_PRODUCT_VALUE = "create a new product"
   name: string;
   categoryId: string;
   price: string;
 }
 
 function emptyRow(): ItemRow {
-  return { productId: NEW_PRODUCT_VALUE, name: "", categoryId: "", price: "" };
+  return { productId: "", name: "", categoryId: "", price: "" };
 }
 
 // Admin uploads a flyer photo for a store and types in the item list
@@ -94,7 +98,7 @@ export function UploadFlyerForStoreForm() {
     }
     const completeItems = items.filter((row) => {
       if (!row.price) return false;
-      return row.productId !== NEW_PRODUCT_VALUE || row.name.trim().length > 0;
+      return row.productId === NEW_PRODUCT_VALUE ? row.name.trim().length > 0 : row.productId !== "";
     });
     if (completeItems.length === 0) {
       setError("Add at least one item with a price, and either a product name or an existing product.");
@@ -107,9 +111,9 @@ export function UploadFlyerForStoreForm() {
         storeId,
         imageId,
         items: completeItems.map((row) =>
-          row.productId !== NEW_PRODUCT_VALUE
-            ? { productId: row.productId, price: Number(row.price) }
-            : { name: row.name.trim(), categoryId: row.categoryId || undefined, price: Number(row.price) }
+          row.productId === NEW_PRODUCT_VALUE
+            ? { name: row.name.trim(), categoryId: row.categoryId || undefined, price: Number(row.price) }
+            : { productId: row.productId, price: Number(row.price) }
         ),
       });
       router.replace("/admin/dashboard");
@@ -126,9 +130,14 @@ export function UploadFlyerForStoreForm() {
 
   return (
     <div className={styles.page}>
-      <button type="button" className={styles.back} onClick={() => router.back()}>
-        ← Back
-      </button>
+      <div className={styles.headerRow}>
+        <button type="button" className={styles.back} onClick={() => router.back()}>
+          ← Back
+        </button>
+        <button type="button" className={styles.back} onClick={() => router.push("/admin/dashboard")}>
+          🏠 Dashboard
+        </button>
+      </div>
       <h1 className={styles.heading}>Upload a flyer for a store</h1>
       <p className={styles.subheading}>
         Pick a store and photo, then list the items as you see them on the flyer. It goes live for
@@ -173,6 +182,9 @@ export function UploadFlyerForStoreForm() {
                     value={row.productId}
                     onChange={(e) => updateItem(index, { productId: e.target.value })}
                   >
+                    <option value="" disabled>
+                      Select a product
+                    </option>
                     <option value={NEW_PRODUCT_VALUE}>+ New product</option>
                     {products.map((p) => (
                       <option key={p.value} value={p.value}>

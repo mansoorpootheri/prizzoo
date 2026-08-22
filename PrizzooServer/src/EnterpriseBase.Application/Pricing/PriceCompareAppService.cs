@@ -54,15 +54,18 @@ namespace EnterpriseBase.Application.Pricing
         private static readonly TimeSpan FreshnessThreshold = TimeSpan.FromDays(7);
 
         private readonly IRepository<EnterpriseBase.Pricing.Price, Guid> _priceRepository;
+        private readonly IRepository<EnterpriseBase.Pricing.FlyerProduct, Guid> _flyerProductRepository;
         private readonly IRepository<Category, Guid> _categoryRepository;
         private readonly IRepository<EnterpriseBase.Pricing.ProductRating, Guid> _ratingRepository;
 
         public PriceCompareAppService(
             IRepository<EnterpriseBase.Pricing.Price, Guid> priceRepository,
+            IRepository<EnterpriseBase.Pricing.FlyerProduct, Guid> flyerProductRepository,
             IRepository<Category, Guid> categoryRepository,
             IRepository<EnterpriseBase.Pricing.ProductRating, Guid> ratingRepository)
         {
             _priceRepository = priceRepository;
+            _flyerProductRepository = flyerProductRepository;
             _categoryRepository = categoryRepository;
             _ratingRepository = ratingRepository;
         }
@@ -87,13 +90,26 @@ namespace EnterpriseBase.Application.Pricing
             List<EnterpriseBase.Pricing.Price> candidates;
             if (input.FlyerId.HasValue)
             {
+                // FlyerProduct carries no price of its own - a flyer tap
+                // just narrows the normal Price query down to that flyer's
+                // store and the set of products it features (see
+                // FlyerAppService's doc comment), so the item's price is
+                // always whatever that product is currently priced at
+                // there.
+                var flyerLinks = await _flyerProductRepository.GetAll()
+                    .Where(x => x.FlyerId == input.FlyerId.Value)
+                    .Select(x => new { x.ProductId, x.Flyer.StoreId })
+                    .ToListAsync();
+                var flyerStoreId = flyerLinks.Select(x => x.StoreId).FirstOrDefault();
+                var flyerProductIds = flyerLinks.Select(x => x.ProductId).ToList();
+
                 candidates = await _priceRepository.GetAll()
                     .Include(x => x.Product).ThenInclude(p => p.Category)
                     .Include(x => x.Store)
                     .Where(x => x.Status == EnterpriseBase.Pricing.PriceStatus.Approved)
                     .Where(x => x.Store.IsActive)
                     .Where(x => x.Product.IsActive)
-                    .Where(x => x.FlyerId == input.FlyerId.Value)
+                    .Where(x => x.StoreId == flyerStoreId && flyerProductIds.Contains(x.ProductId))
                     .ToListAsync();
             }
             else
@@ -121,6 +137,19 @@ namespace EnterpriseBase.Application.Pricing
                         return query;
                     });
             }
+
+            // A product can have more than one approved Price row at the same
+            // store - Price is append-only (see the class doc comment on
+            // Price.cs), so re-entering a price (e.g. via a flyer upload
+            // after an earlier direct entry) adds a new row rather than
+            // overwriting the old one. Only the most recent observation per
+            // product+store should ever reach a shopper - older rows stay in
+            // the table for history/audit, but showing both here would look
+            // like the same item listed twice at the same store.
+            candidates = candidates
+                .GroupBy(x => new { x.ProductId, x.StoreId })
+                .Select(g => g.OrderByDescending(x => x.ObservedAt).First())
+                .ToList();
 
             var results = await BuildResultDtosAsync(candidates, input.Latitude, input.Longitude);
 

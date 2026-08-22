@@ -9,12 +9,16 @@ namespace EnterpriseBase.Pricing
     /// <summary>
     /// A flyer photo an admin uploaded for a store, together with the
     /// hand-typed item list submitted alongside it (see FlyerAppService.
-    /// CreateFlyerForStoreAsync) - each item becomes a real, already-
-    /// Approved Price row tagged with this Flyer's Id (Price.FlyerId), not
-    /// a separate line-item table. There is no pending/moderation state:
-    /// creating a Flyer *is* publishing it. Deliberately NOT IMustHaveTenant/
-    /// IMayHaveTenant - part of the same shared public catalog as Store/
-    /// Product/Price (see Store.cs's doc comment for why).
+    /// CreateFlyerForStoreAsync) - each item becomes a FlyerProduct row
+    /// linking this Flyer to the Product it features. FlyerProduct carries
+    /// no price of its own; the price shown for an item is always looked
+    /// up live from that Product's current Price at this Flyer's Store (a
+    /// Price row is only ever inserted the first time a product is put on
+    /// a flyer with no existing price at this store yet). There is no
+    /// pending/moderation state: creating a Flyer *is* publishing it.
+    /// Deliberately NOT IMustHaveTenant/IMayHaveTenant - part of the same
+    /// shared public catalog as Store/Product/Price (see Store.cs's doc
+    /// comment for why).
     /// </summary>
     [Table("Flyers")]
     public class Flyer : FullAuditedEntity<Guid>

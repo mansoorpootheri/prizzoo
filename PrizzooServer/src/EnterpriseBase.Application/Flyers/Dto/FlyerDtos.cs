@@ -38,6 +38,17 @@ namespace EnterpriseBase.Application.Flyers.Dto
         public List<FlyerLineItemDto> Items { get; set; }
     }
 
+    /// <summary>Add more items to a flyer that's already live - e.g. items left out at upload time, or the store's flyer has since added products.</summary>
+    public class AddFlyerItemsDto
+    {
+        [Required]
+        public Guid FlyerId { get; set; }
+
+        [Required]
+        [MinLength(1)]
+        public List<FlyerLineItemDto> Items { get; set; }
+    }
+
     public class FlyerDto : EntityDto<Guid>
     {
         public Guid StoreId { get; set; }

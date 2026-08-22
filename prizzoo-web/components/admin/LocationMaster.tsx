@@ -17,8 +17,8 @@ interface LocationFormState {
   id?: string;
   name: string;
   districtId: string;
-  latitude: string;
-  longitude: string;
+  latitude: number | null;
+  longitude: number | null;
   isActive: boolean;
 }
 
@@ -26,8 +26,8 @@ const EMPTY_FORM: LocationFormState = {
   id: undefined,
   name: "",
   districtId: "",
-  latitude: "",
-  longitude: "",
+  latitude: null,
+  longitude: null,
   isActive: true,
 };
 
@@ -80,8 +80,8 @@ export function LocationMaster() {
       (position) => {
         setForm((f) => ({
           ...f,
-          latitude: position.coords.latitude.toFixed(6),
-          longitude: position.coords.longitude.toFixed(6),
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
         }));
         setLocatingNow(false);
       },
@@ -100,8 +100,8 @@ export function LocationMaster() {
       id: location.id,
       name: location.name,
       districtId: String(location.districtId),
-      latitude: location.latitude != null ? String(location.latitude) : "",
-      longitude: location.longitude != null ? String(location.longitude) : "",
+      latitude: location.latitude,
+      longitude: location.longitude,
       isActive: location.isActive,
     });
     setModalOpen(true);
@@ -109,7 +109,7 @@ export function LocationMaster() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!form.districtId) return;
+    if (!form.districtId || form.latitude == null || form.longitude == null) return;
     setError(null);
     setSubmitting(true);
     try {
@@ -117,8 +117,8 @@ export function LocationMaster() {
         id: form.id,
         name: form.name,
         districtId: Number(form.districtId),
-        latitude: form.latitude ? Number(form.latitude) : undefined,
-        longitude: form.longitude ? Number(form.longitude) : undefined,
+        latitude: form.latitude,
+        longitude: form.longitude,
         isActive: form.isActive,
       });
       setModalOpen(false);
@@ -149,16 +149,22 @@ export function LocationMaster() {
 
   return (
     <div className={styles.root}>
-      <button type="button" className={styles.back} onClick={() => router.back()}>
-        ← Back
-      </button>
+      <div className={styles.headerRow}>
+        <button type="button" className={styles.back} onClick={() => router.back()}>
+          ← Back
+        </button>
+        <button type="button" className={styles.back} onClick={() => router.push("/admin/dashboard")}>
+          🏠 Dashboard
+        </button>
+      </div>
 
       <div className={styles.topBar}>
         <div className={styles.topBarHeadings}>
           <h1 className={styles.heading}>Location master</h1>
           <p className={styles.subheading}>
             A locality within a district, e.g. &quot;Feroke&quot; within &quot;Kozhikode&quot;. Coordinates
-            let a shopper&apos;s live GPS position be matched to the nearest location later.
+            are captured on-site via &quot;Use my current location&quot; and are the only source of a
+            store&apos;s coordinates once it&apos;s assigned this location.
           </p>
         </div>
         <button type="button" className={styles.addButton} onClick={openAdd}>
@@ -248,26 +254,14 @@ export function LocationMaster() {
                 required
               />
             </label>
-            <label className={styles.label}>
-              Latitude
-              <input
-                className={styles.field}
-                type="number"
-                step="0.000001"
-                value={form.latitude}
-                onChange={(e) => setForm((f) => ({ ...f, latitude: e.target.value }))}
-              />
-            </label>
-            <label className={styles.label}>
-              Longitude
-              <input
-                className={styles.field}
-                type="number"
-                step="0.000001"
-                value={form.longitude}
-                onChange={(e) => setForm((f) => ({ ...f, longitude: e.target.value }))}
-              />
-            </label>
+            <div className={styles.label}>
+              Coordinates
+              <div className={styles.field}>
+                {form.latitude != null && form.longitude != null
+                  ? `📍 ${form.latitude.toFixed(6)}, ${form.longitude.toFixed(6)}`
+                  : "No coordinates captured yet"}
+              </div>
+            </div>
             <button
               type="button"
               className={styles.locateButton}
@@ -287,7 +281,11 @@ export function LocationMaster() {
 
             {error && <ErrorBanner message={error} />}
 
-            <button className={styles.submit} type="submit" disabled={submitting || !form.districtId}>
+            <button
+              className={styles.submit}
+              type="submit"
+              disabled={submitting || !form.districtId || form.latitude == null || form.longitude == null}
+            >
               {submitting ? <LoadingSpinner /> : form.id ? "Save changes" : "Add location"}
             </button>
           </form>

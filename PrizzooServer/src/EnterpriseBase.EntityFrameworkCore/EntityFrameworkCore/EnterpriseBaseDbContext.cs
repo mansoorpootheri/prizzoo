@@ -47,6 +47,7 @@ public class EnterpriseBaseDbContext : AbpZeroDbContext<Tenant, Role, User, Ente
     public virtual DbSet<ProductRating> ProductRatings { get; set; }
     public virtual DbSet<Location> Locations { get; set; }
     public virtual DbSet<Flyer> Flyers { get; set; }
+    public virtual DbSet<FlyerProduct> FlyerProducts { get; set; }
 
     public EnterpriseBaseDbContext(DbContextOptions<EnterpriseBaseDbContext> options)
         : base(options)
@@ -141,14 +142,22 @@ public class EnterpriseBaseDbContext : AbpZeroDbContext<Tenant, Role, User, Ente
         modelBuilder.Entity<Flyer>()
             .HasIndex(x => x.StoreId);
 
-        modelBuilder.Entity<Price>()
+        modelBuilder.Entity<FlyerProduct>()
             .HasOne(x => x.Flyer)
             .WithMany()
             .HasForeignKey(x => x.FlyerId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<Price>()
-            .HasIndex(x => x.FlyerId);
+        modelBuilder.Entity<FlyerProduct>()
+            .HasOne(x => x.Product)
+            .WithMany()
+            .HasForeignKey(x => x.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // A product shouldn't be linked to the same flyer twice.
+        modelBuilder.Entity<FlyerProduct>()
+            .HasIndex(x => new { x.FlyerId, x.ProductId })
+            .IsUnique();
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {

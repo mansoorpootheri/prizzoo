@@ -45,20 +45,16 @@ namespace EnterpriseBase.Application.Stores.Dto
 
         /// <summary>
         /// The specific locality within a Geography District, e.g. "Feroke".
-        /// Optional - if set, StoreAppService overrides City with the
-        /// resolved district name so the two stay consistent.
+        /// Mandatory - it is now the store's only source of coordinates
+        /// (see StoreAppService.ResolveLocationAsync); City is overridden
+        /// with the resolved district name so the two stay consistent.
         /// </summary>
+        [Required]
         public Guid? LocationId { get; set; }
 
         [Phone]
         [MaxLength(30)]
         public string Phone { get; set; }
-
-        [Required]
-        public decimal Latitude { get; set; }
-
-        [Required]
-        public decimal Longitude { get; set; }
 
         [MaxLength(500)]
         public string OpeningHours { get; set; }
@@ -83,14 +79,12 @@ namespace EnterpriseBase.Application.Stores.Dto
         [MaxLength(100)]
         public string City { get; set; }
 
+        [Required]
         public Guid? LocationId { get; set; }
 
         [Phone]
         [MaxLength(30)]
         public string Phone { get; set; }
-
-        public decimal Latitude { get; set; }
-        public decimal Longitude { get; set; }
 
         [MaxLength(500)]
         public string OpeningHours { get; set; }

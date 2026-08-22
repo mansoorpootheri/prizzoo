@@ -93,11 +93,11 @@ export interface CreateStoreInput {
   address?: string;
   city?: string;
   // The specific locality within a district, e.g. "Feroke" within
-  // "Kozhikode" - when set, the backend derives City from it automatically.
-  locationId?: string;
+  // "Kozhikode" - mandatory, it's now the store's only source of
+  // coordinates (the backend derives both City and Latitude/Longitude from
+  // it; there is no separate lat/lng input any more).
+  locationId: string;
   phone?: string;
-  latitude: number;
-  longitude: number;
   openingHours?: string;
   categoryTags?: string;
   imageId?: string;
@@ -140,10 +140,9 @@ export interface UpdateStoreInput {
   name: string;
   address?: string;
   city?: string;
-  locationId?: string;
+  // Mandatory - see CreateStoreInput.locationId.
+  locationId: string;
   phone?: string;
-  latitude: number;
-  longitude: number;
   openingHours?: string;
   categoryTags?: string;
   imageId?: string;
@@ -161,9 +160,11 @@ export interface AdminLocation {
   name: string;
   districtId: number;
   districtName: string | null;
-  // The locality's approximate centroid - lets a shopper's live GPS
-  // position be matched against these to auto-detect which Location
-  // they're in. Null for locations added before this field existed.
+  // The locality's approximate centroid, captured via the admin's "use my
+  // current location" action - the sole source of a store's coordinates
+  // (see StoreAppService) and of a shopper's picked-location coordinates
+  // (see the home-screen LocationPickerModal). Null only for legacy rows
+  // created before this field was required.
   latitude: number | null;
   longitude: number | null;
   isActive: boolean;
@@ -173,8 +174,9 @@ export interface CreateEditLocationInput {
   id?: string;
   name: string;
   districtId: number;
-  latitude?: number;
-  longitude?: number;
+  // Required - captured only via device geolocation, never typed by hand.
+  latitude: number;
+  longitude: number;
   isActive: boolean;
 }
 
@@ -319,6 +321,12 @@ export interface FlyerLineItemInput {
 export interface CreateFlyerForStoreInput {
   storeId: string;
   imageId: string;
+  items: FlyerLineItemInput[];
+}
+
+// Add more items to a flyer that's already live - see FlyerAppService.AddItemsToFlyerAsync.
+export interface AddFlyerItemsInput {
+  flyerId: string;
   items: FlyerLineItemInput[];
 }
 

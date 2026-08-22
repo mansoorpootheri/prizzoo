@@ -57,9 +57,14 @@ export function StoreList() {
 
   return (
     <div className={styles.root}>
-      <button type="button" className={styles.back} onClick={() => router.back()}>
-        ← Back
-      </button>
+      <div className={styles.headerRow}>
+        <button type="button" className={styles.back} onClick={() => router.back()}>
+          ← Back
+        </button>
+        <button type="button" className={styles.back} onClick={() => router.push("/admin/dashboard")}>
+          🏠 Dashboard
+        </button>
+      </div>
 
       <div className={styles.topBar}>
         <div className={styles.topBarHeadings}>

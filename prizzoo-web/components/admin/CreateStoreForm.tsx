@@ -27,9 +27,6 @@ export function CreateStoreForm({ onSaved }: CreateStoreFormProps) {
   const [categories, setCategories] = useState<ComboboxItem[]>([]);
   const [categoryId, setCategoryId] = useState("");
   const [imageId, setImageId] = useState<string | null>(null);
-  const [latitude, setLatitude] = useState(0);
-  const [longitude, setLongitude] = useState(0);
-  const [locatingNow, setLocatingNow] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -61,22 +58,9 @@ export function CreateStoreForm({ onSaved }: CreateStoreFormProps) {
       .catch(() => setLocations([]));
   }, [districtId]);
 
-  function useCurrentLocation() {
-    if (typeof navigator === "undefined" || !navigator.geolocation) return;
-    setLocatingNow(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLatitude(position.coords.latitude);
-        setLongitude(position.coords.longitude);
-        setLocatingNow(false);
-      },
-      () => setLocatingNow(false),
-      { timeout: 8000 }
-    );
-  }
-
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    if (!locationId) return;
     setError(null);
     setSubmitting(true);
     try {
@@ -86,13 +70,11 @@ export function CreateStoreForm({ onSaved }: CreateStoreFormProps) {
         name,
         address: address || undefined,
         // City is the district name as a fallback display value; LocationId
-        // (if a specific locality was picked) is what the backend actually
-        // treats as the source of truth and re-derives City from.
+        // is what the backend actually treats as the source of truth (both
+        // for City and for the store's coordinates) and re-derives from.
         city: districtName,
-        locationId: locationId || undefined,
+        locationId,
         phone: phone || undefined,
-        latitude,
-        longitude,
         openingHours: openingHours || undefined,
         categoryTags: categoryName,
         imageId: imageId ?? undefined,
@@ -140,8 +122,11 @@ export function CreateStoreForm({ onSaved }: CreateStoreFormProps) {
           value={locationId}
           onChange={(e) => setLocationId(e.target.value)}
           disabled={!districtId}
+          required
         >
-          <option value="">No specific location</option>
+          <option value="" disabled>
+            Select a location
+          </option>
           {locations.map((l) => (
             <option key={l.value} value={l.value}>
               {l.displayText}
@@ -174,21 +159,10 @@ export function CreateStoreForm({ onSaved }: CreateStoreFormProps) {
         </select>
       </label>
       <ImageUploadField label="Shop photo" value={imageId} onChange={setImageId} />
-      <div className={styles.locationNote}>
-        Location: {latitude.toFixed(4)}, {longitude.toFixed(4)}
-        <button
-          type="button"
-          className={styles.locationButton}
-          onClick={useCurrentLocation}
-          disabled={locatingNow}
-        >
-          {locatingNow ? "Detecting…" : "📍 Use my current location"}
-        </button>
-      </div>
 
       {error && <ErrorBanner message={error} />}
 
-      <button className={styles.submit} type="submit" disabled={submitting}>
+      <button className={styles.submit} type="submit" disabled={submitting || !locationId}>
         {submitting ? <LoadingSpinner /> : "Create store"}
       </button>
     </form>

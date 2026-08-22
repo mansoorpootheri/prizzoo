@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { useGeolocation } from "@/lib/geolocation/useGeolocation";
+import { useShopperLocation } from "@/lib/location/useShopperLocation";
 import { useComparePrices } from "@/lib/hooks/useComparePrices";
 import { useHomeFeed } from "@/lib/hooks/useHomeFeed";
 import { getActiveCategories } from "@/lib/api/priceCompare";
@@ -11,6 +11,7 @@ import { getFlyersForStore, getRecentFlyers } from "@/lib/api/flyer";
 import { homeFeedSectionId } from "@/lib/utils/slugify";
 import type { FlyerDetail, StorePriceResult } from "@/lib/api/types";
 import { LocationBar } from "@/components/home/LocationBar";
+import { LocationPickerModal } from "@/components/home/LocationPickerModal";
 import { TopTabBar, type TopTab, type SortMode } from "@/components/home/TopTabBar";
 import { BottomNav } from "@/components/home/BottomNav";
 import { RetailerStrip, type Retailer } from "@/components/home/RetailerStrip";
@@ -23,7 +24,8 @@ import styles from "./page.module.css";
 export default function Page() {
   const router = useRouter();
   const { isAuthenticated, isAdmin, isReady, logout } = useAuth();
-  const { coordinates, isLocating, isFallback } = useGeolocation();
+  const { location, isReady: locationReady, setLocation } = useShopperLocation();
+  const [pickerOpen, setPickerOpen] = useState(false);
   const { data, loading, error, search, searchByStore, searchByFlyer } = useComparePrices();
   const { data: feedSections, loading: feedLoading, error: feedError, load: loadFeed } = useHomeFeed();
   const [sortMode, setSortMode] = useState<SortMode>("all");
@@ -61,11 +63,21 @@ export default function Page() {
       });
   }, [isReady, isAuthenticated]);
 
+  // First landing after login (or any time the picked location is cleared)
+  // shows the mandatory location picker - derived directly in the render
+  // below (isPickerMandatoryOpen), not via an effect, since it's just a
+  // function of already-available state. Admins are exempt - they don't
+  // shop, they just pass through /home to reach the account menu's Admin
+  // link, so they shouldn't be forced through a shopper onboarding step.
+  // They can still open the picker voluntarily via LocationBar if they want
+  // to test the shopper search flow.
+  const isPickerMandatoryOpen = isReady && isAuthenticated && !isAdmin && locationReady && !location;
+
   useEffect(() => {
-    if (!isReady || !isAuthenticated || isLocating) return;
-    void loadFeed(coordinates);
+    if (!isReady || !isAuthenticated || !location) return;
+    void loadFeed(location);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isReady, isAuthenticated, isLocating]);
+  }, [isReady, isAuthenticated, location]);
 
   function handleLogout() {
     logout();
@@ -73,10 +85,11 @@ export default function Page() {
   }
 
   function runSearch(keyword: string) {
+    if (!location) return;
     setHasSearched(true);
     setStoreFlyers([]);
     setSelectedFlyerId(null);
-    void search(keyword, coordinates);
+    void search(keyword, location);
   }
 
   // Category taps browse in place - they jump to that category's row inside
@@ -97,9 +110,10 @@ export default function Page() {
   }
 
   function runStoreSearch(retailer: Retailer) {
+    if (!location) return;
     setHasSearched(true);
     setSelectedFlyerId(null);
-    void searchByStore(retailer.storeId, coordinates);
+    void searchByStore(retailer.storeId, location);
     getFlyersForStore(retailer.storeId)
       .then(setStoreFlyers)
       .catch(() => setStoreFlyers([])); // no flyer banner is a fine fallback, not worth surfacing an error for
@@ -114,8 +128,9 @@ export default function Page() {
   // already true), it keeps narrowing the existing results view instead,
   // which is unchanged from before.
   function selectFlyer(flyer: FlyerDetail) {
+    if (!location) return;
     setSelectedFlyerId(flyer.id);
-    void searchByFlyer(flyer.id, coordinates);
+    void searchByFlyer(flyer.id, location);
     getFlyersForStore(flyer.storeId)
       .then(setStoreFlyers)
       .catch(() => setStoreFlyers([]));
@@ -171,8 +186,9 @@ export default function Page() {
       <img src="/assets/splash/radial-glow.png" alt="" aria-hidden="true" className={styles.glow} />
       <div className={styles.content}>
         <LocationBar
-          isLocating={isLocating}
-          isFallback={isFallback}
+          locationLabel={location ? location.locationName : "Choose location"}
+          locationSubLabel={location ? `${location.districtName}, India` : ""}
+          onChangeLocation={() => setPickerOpen(true)}
           searchOpen={searchOpen}
           onToggleSearch={() => {
             setSearchOpen((open) => {
@@ -243,8 +259,18 @@ export default function Page() {
           setActiveTab(tab);
           if (tab === "home") setHasSearched(false);
         }}
-        onRefresh={() => void loadFeed(coordinates)}
+        onRefresh={() => location && void loadFeed(location)}
       /> */}
+      {(isPickerMandatoryOpen || pickerOpen) && (
+        <LocationPickerModal
+          mandatory={!location}
+          onPicked={(loc) => {
+            setLocation(loc);
+            setPickerOpen(false);
+          }}
+          onClose={() => setPickerOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -12,6 +12,12 @@
   gap: 16px;
 }
 
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .back {
   align-self: flex-start;
   display: inline-flex;

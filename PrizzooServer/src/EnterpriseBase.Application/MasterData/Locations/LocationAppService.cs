@@ -27,7 +27,6 @@ namespace EnterpriseBase.Application.MasterData.Locations
     /// "Kozhikode". District plays the "city" role in the store-creation
     /// form (see DefaultGeographyCreator) - this narrows within it.
     /// </summary>
-    [AbpAuthorize(PermissionNames.Pages_Locations)]
     public class LocationAppService : EnterpriseBaseAppServiceBase, ILocationAppService
     {
         private readonly IRepository<Location, Guid> _repository;
@@ -37,6 +36,10 @@ namespace EnterpriseBase.Application.MasterData.Locations
             _repository = repository;
         }
 
+        // Read-only, so both roles that need a District -> Location list can
+        // call it: admin (store form) and shopper (location picker, see
+        // Pages_Shopper). Only the mutating methods below stay Admin-only.
+        [AbpAuthorize(PermissionNames.Pages_Locations, PermissionNames.Pages_Shopper)]
         public async Task<List<LocationDto>> GetAllAsync(int? districtId)
         {
             var list = await _repository.GetAll()
@@ -89,10 +92,14 @@ namespace EnterpriseBase.Application.MasterData.Locations
             await _repository.DeleteAsync(input.Id);
         }
 
+        [AbpAuthorize(PermissionNames.Pages_Locations, PermissionNames.Pages_Shopper)]
         public async Task<List<ComboboxItemDto>> GetForComboboxAsync(int districtId)
         {
+            // Only offer locations that can actually supply a store's (or a
+            // shopper's picked) coordinates - a location without them yet
+            // isn't a usable choice anywhere this combobox is used.
             var list = await _repository.GetAll()
-                .Where(x => x.IsActive && x.DistrictId == districtId)
+                .Where(x => x.IsActive && x.DistrictId == districtId && x.Latitude != null && x.Longitude != null)
                 .OrderBy(x => x.Name)
                 .ToListAsync();
 

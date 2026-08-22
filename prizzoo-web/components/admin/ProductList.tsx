@@ -83,9 +83,14 @@ export function ProductList() {
 
   return (
     <div className={styles.page}>
-      <button type="button" className={styles.back} onClick={() => router.back()}>
-        ← Back
-      </button>
+      <div className={styles.headerRow}>
+        <button type="button" className={styles.back} onClick={() => router.back()}>
+          ← Back
+        </button>
+        <button type="button" className={styles.back} onClick={() => router.push("/admin/dashboard")}>
+          🏠 Dashboard
+        </button>
+      </div>
 
       <div className={styles.topBar}>
         <div>

@@ -54,9 +54,14 @@ export function AdminPriceModerationQueue() {
 
   return (
     <div className={styles.root}>
-      <button type="button" className={styles.back} onClick={() => router.back()}>
-        ← Back
-      </button>
+      <div className={styles.headerRow}>
+        <button type="button" className={styles.back} onClick={() => router.back()}>
+          ← Back
+        </button>
+        <button type="button" className={styles.back} onClick={() => router.push("/admin/dashboard")}>
+          🏠 Dashboard
+        </button>
+      </div>
       <h1 className={styles.heading}>Price submissions</h1>
       <p className={styles.subheading}>
         Approve, flag, or reject prices submitted for review.
