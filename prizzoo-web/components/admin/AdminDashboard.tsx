@@ -5,22 +5,67 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/AuthContext";
 import styles from "./AdminDashboard.module.css";
 
+interface DashboardLink {
+  label: string;
+  href: string;
+}
+
+interface DashboardSection {
+  heading: string;
+  links: DashboardLink[];
+}
+
+const SECTIONS: DashboardSection[] = [
+  {
+    heading: "Stores",
+    links: [{ label: "Manage stores", href: "/admin/stores" }],
+  },
+  {
+    heading: "Catalog",
+    links: [
+      { label: "Manage products", href: "/admin/products" },
+      { label: "Category master", href: "/admin/categories" },
+      { label: "Unit master", href: "/admin/units" },
+    ],
+  },
+  {
+    heading: "Pricing",
+    links: [
+      { label: "Store prices", href: "/admin/prices" },
+      { label: "Upload a flyer for a store", href: "/admin/flyers/new" },
+    ],
+  },
+  {
+    heading: "Master data",
+    links: [{ label: "Location master", href: "/admin/locations" }],
+  },
+  {
+    heading: "Administration",
+    links: [
+      { label: "Manage admins", href: "/admin/admins" },
+      { label: "Registered users", href: "/admin/users" },
+    ],
+  },
+];
+
 export function AdminDashboard() {
   const router = useRouter();
-  const { isAuthenticated, isReady, logout } = useAuth();
+  const { isAuthenticated, isAdmin, isReady, logout } = useAuth();
 
   useEffect(() => {
     if (isReady && !isAuthenticated) {
-      router.replace("/login");
+      router.replace("/phone-entry");
+    } else if (isReady && isAuthenticated && !isAdmin) {
+      router.replace("/home");
     }
-  }, [isReady, isAuthenticated, router]);
+  }, [isReady, isAuthenticated, isAdmin, router]);
 
   function handleLogout() {
     logout();
-    router.replace("/login");
+    router.replace("/phone-entry");
   }
 
-  if (!isReady || !isAuthenticated) {
+  if (!isReady || !isAuthenticated || !isAdmin) {
     return null;
   }
 
@@ -28,33 +73,28 @@ export function AdminDashboard() {
     <div className={styles.root}>
       <div className={styles.topBar}>
         <h1 className={styles.heading}>Admin</h1>
-        <button type="button" className={styles.logoutButton} onClick={handleLogout}>
-          Logout
-        </button>
+        <div className={styles.topBarActions}>
+          <button type="button" className={styles.backButton} onClick={() => router.push("/home")}>
+            Back to shopping
+          </button>
+          <button type="button" className={styles.logoutButton} onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
       </div>
-      <div className={styles.linkList}>
-        <a className={styles.linkCard} href="/admin/stores/new">
-          Create a store + owner
-        </a>
-        <a className={styles.linkCard} href="/admin/stores">
-          Manage stores
-        </a>
-        <a className={styles.linkCard} href="/admin/moderation/prices">
-          Price moderation queue
-        </a>
-        <a className={styles.linkCard} href="/admin/flyers/new">
-          Upload a flyer for a store
-        </a>
-        <a className={styles.linkCard} href="/admin/categories">
-          Category master
-        </a>
-        <a className={styles.linkCard} href="/admin/locations">
-          Location master
-        </a>
-        <a className={styles.linkCard} href="/admin/change-password">
-          Change password
-        </a>
-      </div>
+
+      {SECTIONS.map((section) => (
+        <div key={section.heading} className={styles.section}>
+          <h2 className={styles.sectionHeading}>{section.heading}</h2>
+          <div className={styles.linkList}>
+            {section.links.map((link) => (
+              <a key={link.href} className={styles.linkCard} href={link.href}>
+                {link.label}
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

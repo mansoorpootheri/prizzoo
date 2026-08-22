@@ -2,9 +2,11 @@ import { fetchJson } from "./client";
 import type {
   AdminCategory,
   AdminLocation,
+  AdminUnit,
   ComboboxItem,
   CreateEditCategoryInput,
   CreateEditLocationInput,
+  CreateEditUnitInput,
 } from "./types";
 
 // Host admin only (Pages_Products_Categories is host-side) - manages the
@@ -55,4 +57,24 @@ export function deleteLocation(id: string): Promise<void> {
 // flyer form's "pick an existing product" option per item row.
 export function getProductsForCombobox(): Promise<ComboboxItem[]> {
   return fetchJson<ComboboxItem[]>("/api/services/app/Product/GetForCombobox");
+}
+
+// Host admin only (Pages_Products_Units) - units of measure (e.g. "kg",
+// "litre", "piece") a product can be sold in.
+const UNIT_BASE = "/api/services/app/Unit";
+
+export function getUnitsForCombobox(): Promise<ComboboxItem[]> {
+  return fetchJson<ComboboxItem[]>(`${UNIT_BASE}/GetForCombobox`);
+}
+
+export function getUnits(): Promise<AdminUnit[]> {
+  return fetchJson<AdminUnit[]>(`${UNIT_BASE}/GetAll`);
+}
+
+export function createOrEditUnit(input: CreateEditUnitInput): Promise<void> {
+  return fetchJson<void>(`${UNIT_BASE}/CreateOrEdit`, { method: "POST", body: input });
+}
+
+export function deleteUnit(id: string): Promise<void> {
+  return fetchJson<void>(`${UNIT_BASE}/Delete?Id=${encodeURIComponent(id)}`, { method: "DELETE" });
 }

@@ -28,10 +28,7 @@
         public static class Tenant
         {
             public const string Settings = "Administration.Settings.Tenant";
-            public const string Branch = "Administration.Branch.Tenant";
             public const string Center = "Administration.Center.Tenant";
-            public const string EmployeeType = "Administration.EmployeeType.Tenant";
-            public const string Employee = "Administration.Employee.Tenant";
         }
 
         public static class Geography

@@ -104,17 +104,22 @@ namespace EnterpriseBase.Controllers
                 identity = (ClaimsIdentity)(await _principalFactory.CreateAsync(user)).Identity;
             }
 
-            // Shoppers get a long-lived session (see AppConsts.ShopperAccessTokenExpiration)
-            // rather than the shared 1-day Admin/ShopOwner token - they should
-            // stay logged in until they actually log out, not be forced to
-            // re-verify their phone number daily.
-            var accessToken = CreateAccessToken(CreateJwtClaims(identity), AppConsts.ShopperAccessTokenExpiration);
+            // Admins get the same short-lived session as before (Configuration.Expiration,
+            // 1 day) rather than the long-lived shopper token - OTP is still a
+            // stubbed "123456" code (see OtpChallengeService), so an admin
+            // session shouldn't linger a month. Shoppers keep their existing
+            // 30-day token (see AppConsts.ShopperAccessTokenExpiration) - they
+            // should stay logged in until they actually log out, not be forced
+            // to re-verify their phone number daily.
+            var isAdmin = await _userManager.IsInRoleAsync(user, StaticRoleNames.Tenants.Admin);
+            var expiration = isAdmin ? Configuration.Expiration : AppConsts.ShopperAccessTokenExpiration;
+            var accessToken = CreateAccessToken(CreateJwtClaims(identity), expiration);
 
             return new AuthenticateResultModel
             {
                 AccessToken = accessToken,
                 EncryptedAccessToken = GetEncryptedAccessToken(accessToken),
-                ExpireInSeconds = (int)AppConsts.ShopperAccessTokenExpiration.TotalSeconds,
+                ExpireInSeconds = (int)expiration.TotalSeconds,
                 UserId = user.Id,
             };
         }

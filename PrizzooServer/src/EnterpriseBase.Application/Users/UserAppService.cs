@@ -13,8 +13,6 @@ using Abp.UI;
 using EnterpriseBase.Authorization;
 using EnterpriseBase.Authorization.Roles;
 using EnterpriseBase.Authorization.Users;
-using EnterpriseBase.Branches;
-using EnterpriseBase.Branches.Dto;
 using EnterpriseBase.Features;
 using EnterpriseBase.Roles.Dto;
 using EnterpriseBase.Users.Dto;
@@ -34,8 +32,6 @@ public class UserAppService : AsyncCrudAppService<User, UserDto, long, PagedUser
     private readonly UserManager _userManager;
     private readonly RoleManager _roleManager;
     private readonly IRepository<Role> _roleRepository;
-    private readonly BranchManager _branchManager;
-    private readonly IRepository<UserBranchMapping, long> _userBranchMappingRepository;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly IAbpSession _abpSession;
     private readonly LogInManager _logInManager;
@@ -46,8 +42,6 @@ public class UserAppService : AsyncCrudAppService<User, UserDto, long, PagedUser
         UserManager userManager,
         RoleManager roleManager,
         IRepository<Role> roleRepository,
-        BranchManager branchManager,
-        IRepository<UserBranchMapping, long> userBranchMappingRepository,
         IPasswordHasher<User> passwordHasher,
         IAbpSession abpSession,
         LogInManager logInManager,
@@ -57,8 +51,6 @@ public class UserAppService : AsyncCrudAppService<User, UserDto, long, PagedUser
         _userManager = userManager;
         _roleManager = roleManager;
         _roleRepository = roleRepository;
-        _branchManager = branchManager;
-        _userBranchMappingRepository = userBranchMappingRepository;
         _passwordHasher = passwordHasher;
         _abpSession = abpSession;
         _logInManager = logInManager;
@@ -97,19 +89,6 @@ public class UserAppService : AsyncCrudAppService<User, UserDto, long, PagedUser
             CheckErrors(await _userManager.SetRolesAsync(user, input.RoleNames));
         }
 
-        if (input.BranchIds != null && input.BranchIds.Length > 0)
-        {
-            foreach (var branchId in input.BranchIds)
-            {
-                await _userBranchMappingRepository.InsertAsync(new UserBranchMapping
-                {
-                    UserId = user.Id,
-                    BranchId = branchId,
-                    TenantId = AbpSession.TenantId
-                });
-            }
-        }
-
         CurrentUnitOfWork.SaveChanges();
 
         return MapToEntityDto(user);
@@ -135,25 +114,6 @@ public class UserAppService : AsyncCrudAppService<User, UserDto, long, PagedUser
         if (input.RoleNames != null)
         {
             CheckErrors(await _userManager.SetRolesAsync(user, input.RoleNames));
-        }
-
-        if (input.BranchIds != null)
-        {
-            var existingMappings = await _userBranchMappingRepository.GetAllListAsync(x => x.UserId == input.Id);
-            foreach (var mapping in existingMappings)
-            {
-                await _userBranchMappingRepository.DeleteAsync(mapping);
-            }
-
-            foreach (var branchId in input.BranchIds)
-            {
-                await _userBranchMappingRepository.InsertAsync(new UserBranchMapping
-                {
-                    UserId = input.Id,
-                    BranchId = branchId,
-                    TenantId = AbpSession.TenantId
-                });
-            }
         }
 
         return await GetAsync(input);
@@ -190,12 +150,6 @@ public class UserAppService : AsyncCrudAppService<User, UserDto, long, PagedUser
         return new ListResultDto<RoleDto>(ObjectMapper.Map<List<RoleDto>>(roles));
     }
 
-    public async Task<ListResultDto<BranchDto>> GetBranches()
-    {
-        var branches = await _branchManager.GetAllBranches();
-        return new ListResultDto<BranchDto>(ObjectMapper.Map<List<BranchDto>>(branches));
-    }
-
     public async Task ChangeLanguage(ChangeUserLanguageDto input)
     {
         await SettingManager.ChangeSettingForUserAsync(
@@ -224,11 +178,8 @@ public class UserAppService : AsyncCrudAppService<User, UserDto, long, PagedUser
 
         var roles = _roleManager.Roles.Where(r => roleIds.Contains(r.Id)).Select(r => r.Name);
 
-        var branchIds = _userBranchMappingRepository.GetAll().Where(x => x.UserId == user.Id).Select(x => x.BranchId).ToArray();
-
         var userDto = base.MapToEntityDto(user);
         userDto.RoleNames = roles.ToArray();
-        userDto.BranchIds = branchIds;
 
         return userDto;
     }

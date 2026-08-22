@@ -16,7 +16,6 @@ public class InitialHostDbBuilder
         new HostRoleAndUserCreator(_context).Create();
         new DefaultSettingsCreator(_context).Create();
         new DefaultGeographyCreator(_context).Create();
-        new DefaultCatalogCreator(_context).Create();
 
         _context.SaveChanges();
     }

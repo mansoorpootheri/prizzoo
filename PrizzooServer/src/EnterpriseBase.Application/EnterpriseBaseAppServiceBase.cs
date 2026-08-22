@@ -2,7 +2,6 @@
 using Abp.IdentityFramework;
 using Abp.Runtime.Session;
 using EnterpriseBase.Authorization.Users;
-using EnterpriseBase.Branches;
 using EnterpriseBase.MultiTenancy;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -14,14 +13,11 @@ public abstract class EnterpriseBaseAppServiceBase : ApplicationService
 {
     public TenantManager TenantManager { get; set; }
     public UserManager UserManager { get; set; }
-    public BranchManager BranchManager { get; set; }
 
     protected EnterpriseBaseAppServiceBase()
     {
         LocalizationSourceName = EnterpriseBaseConsts.LocalizationSourceName;
     }
-
-    protected virtual int GetCurrentBranchId() => BranchManager.GetCurrentBranchId();
 
     protected virtual async Task<User> GetCurrentUserAsync()
     {

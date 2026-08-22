@@ -1,21 +1,16 @@
 using Abp.Application.Services;
 using Abp.Application.Services.Dto;
 using Abp.Authorization;
-using Abp.Authorization.Users;
 using Abp.Domain.Repositories;
 using Abp.Domain.Uow;
 using Abp.Linq.Extensions;
-using Abp.MultiTenancy;
 using Abp.UI;
 using EnterpriseBase.Application.Stores.Dto;
 using EnterpriseBase.Authorization;
-using EnterpriseBase.Authorization.Roles;
-using EnterpriseBase.Authorization.Users;
 using EnterpriseBase.MasterData;
 using EnterpriseBase.Stores;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -30,14 +25,11 @@ namespace EnterpriseBase.Application.Stores
         Task DeleteAsync(EntityDto<Guid> input);
     }
 
-    // Admin/internal-ops CRUD for stores - approve, edit, deactivate.
-    // This is separate from the public search that ranks stores by distance;
-    // see EnterpriseBase.Application.Pricing.PriceCompareAppService for that.
-    //
-    // There is no self-service retailer signup: creating a store also
-    // creates its owner's login in the same call (CreateAsync below), which
-    // is why this whole service is host-only (Pages_Stores is a Host-side
-    // permission) - only the host super admin can provision shops.
+    // Admin CRUD for stores - approve, edit, deactivate. This is separate
+    // from the public search that ranks stores by distance; see
+    // EnterpriseBase.Application.Pricing.PriceCompareAppService for that.
+    // A single Admin identity (phone+OTP) manages every store directly -
+    // there is no per-store owner login to provision here.
     [AbpAuthorize(PermissionNames.Pages_Stores)]
     public class StoreAppService : EnterpriseBaseAppServiceBase, IStoreAppService
     {
@@ -85,44 +77,6 @@ namespace EnterpriseBase.Application.Stores
         [UnitOfWork]
         public virtual async Task<StoreDto> CreateAsync(CreateStoreDto input)
         {
-            var defaultTenant = await TenantManager.FindByTenancyNameAsync(AbpTenantBase.DefaultTenantName);
-            if (defaultTenant == null)
-                throw new UserFriendlyException("Default tenant not found - cannot provision a shop owner login.");
-
-            User owner;
-            string ownerTemporaryPassword;
-
-            // User is tenant-scoped even though Store/Product/Price are not
-            // (see Store.cs's doc comment) - create the owner login under the
-            // app's single operating tenant, mirroring the host->tenant
-            // pattern already used by ImpersonationManager/UserManager.
-            using (CurrentUnitOfWork.SetTenantId(defaultTenant.Id))
-            {
-                owner = new User
-                {
-                    TenantId = defaultTenant.Id,
-                    UserName = input.OwnerEmail,
-                    Name = input.OwnerName,
-                    Surname = string.IsNullOrWhiteSpace(input.OwnerSurname) ? input.OwnerName : input.OwnerSurname,
-                    EmailAddress = input.OwnerEmail,
-                    PhoneNumber = input.OwnerPhoneNumber,
-                    IsEmailConfirmed = true,
-                    IsActive = true,
-                    Roles = new List<UserRole>(),
-                };
-                owner.SetNormalizedNames();
-
-                // Host admin sets no password - a random one-time password is
-                // generated and returned once in the response for the admin
-                // to relay manually (no WhatsApp/SMS credential delivery yet).
-                ownerTemporaryPassword = User.CreateRandomPassword();
-
-                await UserManager.InitializeOptionsAsync(defaultTenant.Id);
-                CheckErrors(await UserManager.CreateAsync(owner, ownerTemporaryPassword));
-                CheckErrors(await UserManager.AddToRoleAsync(owner, StaticRoleNames.Tenants.ShopOwner));
-                await CurrentUnitOfWork.SaveChangesAsync();
-            }
-
             var location = await ResolveLocationOrNullAsync(input.LocationId);
 
             var store = new Store
@@ -141,16 +95,13 @@ namespace EnterpriseBase.Application.Stores
                 CategoryTags  = input.CategoryTags,
                 ImageId       = input.ImageId,
                 IsActive      = input.IsActive,
-                OwnerUserId   = owner.Id,
-                IsVerified    = true, // host admin creating it IS the verification now - no separate approval step
+                IsVerified    = true, // admin creating it IS the verification - no separate approval step
             };
 
             await _repository.InsertAsync(store);
             await CurrentUnitOfWork.SaveChangesAsync();
 
-            var dto = MapToDto(store);
-            dto.OwnerTemporaryPassword = ownerTemporaryPassword;
-            return dto;
+            return MapToDto(store);
         }
 
         [UnitOfWork]

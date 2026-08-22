@@ -9,8 +9,6 @@ public class User : AbpUser<User>
 {
     public const string DefaultPassword = "123qwe";
 
-    public virtual ICollection<UserBranchMapping> UserBranchMappings { get; set; }
-
     public static string CreateRandomPassword()
     {
         // A plain GUID hex slice is all lowercase+digits, which fails the

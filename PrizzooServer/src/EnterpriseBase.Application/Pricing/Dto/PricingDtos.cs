@@ -142,4 +142,42 @@ namespace EnterpriseBase.Application.Pricing.Dto
         public Guid? ProofImageId { get; set; }
         public DateTime ObservedAt { get; set; }
     }
+
+    /// <summary>Admin's "which store sells this at what price" view - every
+    /// Price row regardless of status, not just pending ones (see
+    /// PendingPriceDto for that narrower list).</summary>
+    public class AdminPriceDto : EntityDto<Guid>
+    {
+        public Guid ProductId { get; set; }
+        public string ProductName { get; set; }
+        public Guid StoreId { get; set; }
+        public string StoreName { get; set; }
+        public decimal Amount { get; set; }
+        public decimal? OriginalAmount { get; set; }
+        public PriceStatus Status { get; set; }
+        public PriceSource Source { get; set; }
+        public DateTime ObservedAt { get; set; }
+    }
+
+    public class PagedPriceRequestDto : PagedResultRequestDto
+    {
+        /// <summary>Matches against product or store name.</summary>
+        public string Keyword { get; set; }
+        public Guid? StoreId { get; set; }
+        public Guid? ProductId { get; set; }
+        public PriceStatus? Status { get; set; }
+    }
+
+    public class UpdatePriceDto : EntityDto<Guid>
+    {
+        [Required]
+        [Range(0.01, double.MaxValue)]
+        public decimal Amount { get; set; }
+
+        [Range(0.01, double.MaxValue)]
+        public decimal? OriginalAmount { get; set; }
+
+        [Required]
+        public PriceStatus Status { get; set; }
+    }
 }

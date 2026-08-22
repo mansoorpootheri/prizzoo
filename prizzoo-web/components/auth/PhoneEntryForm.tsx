@@ -30,12 +30,6 @@ export function PhoneEntryForm() {
 
   return (
     <div className={styles.root}>
-      <div className={styles.topBar}>
-        <a className={styles.adminLink} href="/login">
-          Login to admin panel
-        </a>
-      </div>
-
       <img
         src="/assets/splash/prizzoo-logo.png"
         alt="PriZzoO.com"

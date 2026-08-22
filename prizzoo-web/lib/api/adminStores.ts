@@ -1,16 +1,15 @@
 import { fetchJson } from "./client";
 import type {
   AdminStoreDetail,
-  CreatedStore,
-  CreateStoreWithOwnerInput,
+  CreateStoreInput,
   PagedResult,
   UpdateStoreInput,
 } from "./types";
 
-// Host admin only (Pages_Stores is host-side). Creates a store AND its
-// owner login in one call - there is no self-service retailer signup.
-export function createStoreWithOwner(input: CreateStoreWithOwnerInput): Promise<CreatedStore> {
-  return fetchJson<CreatedStore>("/api/services/app/Store/Create", {
+// Admin creates a store directly - no owner login to provision (admin
+// manages every store; there is no separate shop-owner portal).
+export function createStore(input: CreateStoreInput): Promise<AdminStoreDetail> {
+  return fetchJson<AdminStoreDetail>("/api/services/app/Store/Create", {
     method: "POST",
     body: input,
   });

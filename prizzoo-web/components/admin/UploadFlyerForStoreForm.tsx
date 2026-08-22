@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth/AuthContext";
 import { getStores } from "@/lib/api/adminStores";
 import { getCategoriesForCombobox, getProductsForCombobox } from "@/lib/api/adminCatalog";
 import { createFlyerForStore } from "@/lib/api/flyer";
@@ -31,10 +32,11 @@ function emptyRow(): ItemRow {
 // alongside it, in one step - no OCR, no separate moderation queue. Each
 // item either picks an existing catalog product or creates a new one
 // (optionally under a category). Goes live immediately, since the admin's
-// own submission is the trusted source (same "pre-verified actor, no
-// pending step" precedent as ShopOwnerAppService.CreateMyProductAsync).
+// own submission is the trusted source - there is no separate moderation
+// step for it.
 export function UploadFlyerForStoreForm() {
   const router = useRouter();
+  const { isAuthenticated, isAdmin, isReady } = useAuth();
   const [stores, setStores] = useState<AdminStoreDetail[]>([]);
   const [products, setProducts] = useState<ComboboxItem[]>([]);
   const [categories, setCategories] = useState<ComboboxItem[]>([]);
@@ -45,6 +47,15 @@ export function UploadFlyerForStoreForm() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    if (isReady && !isAuthenticated) {
+      router.replace("/phone-entry");
+    } else if (isReady && isAuthenticated && !isAdmin) {
+      router.replace("/home");
+    }
+  }, [isReady, isAuthenticated, isAdmin, router]);
+
+  useEffect(() => {
+    if (!isReady || !isAuthenticated || !isAdmin) return;
     Promise.all([getStores(), getProductsForCombobox(), getCategoriesForCombobox()])
       .then(([storesResult, productsResult, categoriesResult]) => {
         setStores(storesResult.items);
@@ -55,7 +66,7 @@ export function UploadFlyerForStoreForm() {
         // Empty pickers just mean typing everything by hand isn't possible
         // yet; not worth blocking the page over.
       });
-  }, []);
+  }, [isReady, isAuthenticated, isAdmin]);
 
   function updateItem(index: number, patch: Partial<ItemRow>) {
     setItems((prev) => prev.map((row, i) => (i === index ? { ...row, ...patch } : row)));
@@ -107,6 +118,10 @@ export function UploadFlyerForStoreForm() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (!isReady || !isAuthenticated || !isAdmin) {
+    return null;
   }
 
   return (

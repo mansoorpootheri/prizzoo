@@ -186,9 +186,9 @@ namespace EnterpriseBase.Application.Flyers
         /// Product's name; creates a new one if none exists. Exact, not
         /// fuzzy - the admin is typing the real product name directly, so
         /// guessing a "close enough" existing product risks silently
-        /// attaching this price to the wrong item. Mirrors
-        /// ShopOwnerAppService.CreateMyProductAsync: a pre-verified actor's
-        /// new product goes live immediately, no separate moderation.
+        /// attaching this price to the wrong item. A new product goes live
+        /// immediately since the admin creating it is already trusted, no
+        /// separate moderation step.
         /// </summary>
         private async Task<Guid> FindOrCreateProductAsync(string name, Guid? categoryId)
         {

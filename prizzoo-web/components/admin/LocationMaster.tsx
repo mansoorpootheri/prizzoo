@@ -10,6 +10,7 @@ import { ApiError } from "@/lib/api/client";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { ErrorBanner } from "@/components/common/ErrorBanner";
 import { EmptyState } from "@/components/common/EmptyState";
+import { Modal } from "@/components/common/Modal";
 import styles from "./CategoryMaster.module.css";
 
 interface LocationFormState {
@@ -32,22 +33,25 @@ const EMPTY_FORM: LocationFormState = {
 
 export function LocationMaster() {
   const router = useRouter();
-  const { isAuthenticated, isReady } = useAuth();
+  const { isAuthenticated, isAdmin, isReady } = useAuth();
   const [districts, setDistricts] = useState<ComboboxItem[]>([]);
   const [filterDistrictId, setFilterDistrictId] = useState("");
   const [locations, setLocations] = useState<AdminLocation[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<LocationFormState>(EMPTY_FORM);
+  const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [actingId, setActingId] = useState<string | null>(null);
   const [locatingNow, setLocatingNow] = useState(false);
 
   useEffect(() => {
     if (isReady && !isAuthenticated) {
-      router.replace("/login");
+      router.replace("/phone-entry");
+    } else if (isReady && isAuthenticated && !isAdmin) {
+      router.replace("/home");
     }
-  }, [isReady, isAuthenticated, router]);
+  }, [isReady, isAuthenticated, isAdmin, router]);
 
   function loadDistrictsAndLocations(districtId: string) {
     setLoading(true);
@@ -86,6 +90,23 @@ export function LocationMaster() {
     );
   }
 
+  function openAdd() {
+    setForm(EMPTY_FORM);
+    setModalOpen(true);
+  }
+
+  function openEdit(location: AdminLocation) {
+    setForm({
+      id: location.id,
+      name: location.name,
+      districtId: String(location.districtId),
+      latitude: location.latitude != null ? String(location.latitude) : "",
+      longitude: location.longitude != null ? String(location.longitude) : "",
+      isActive: location.isActive,
+    });
+    setModalOpen(true);
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (!form.districtId) return;
@@ -100,7 +121,7 @@ export function LocationMaster() {
         longitude: form.longitude ? Number(form.longitude) : undefined,
         isActive: form.isActive,
       });
-      setForm(EMPTY_FORM);
+      setModalOpen(false);
       loadDistrictsAndLocations(filterDistrictId);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not save this location.");
@@ -109,26 +130,12 @@ export function LocationMaster() {
     }
   }
 
-  function handleEdit(location: AdminLocation) {
-    setForm({
-      id: location.id,
-      name: location.name,
-      districtId: String(location.districtId),
-      latitude: location.latitude != null ? String(location.latitude) : "",
-      longitude: location.longitude != null ? String(location.longitude) : "",
-      isActive: location.isActive,
-    });
-  }
-
   async function handleDelete(id: string) {
     setActingId(id);
     setError(null);
     try {
       await deleteLocation(id);
       setLocations((prev) => prev?.filter((l) => l.id !== id) ?? null);
-      if (form.id === id) {
-        setForm(EMPTY_FORM);
-      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not delete this location.");
     } finally {
@@ -136,7 +143,7 @@ export function LocationMaster() {
     }
   }
 
-  if (!isReady || !isAuthenticated) {
+  if (!isReady || !isAuthenticated || !isAdmin) {
     return null;
   }
 
@@ -145,93 +152,20 @@ export function LocationMaster() {
       <button type="button" className={styles.back} onClick={() => router.back()}>
         ← Back
       </button>
-      <h1 className={styles.heading}>Location master</h1>
-      <p className={styles.subheading}>
-        A locality within a district, e.g. &quot;Feroke&quot; within &quot;Kozhikode&quot;. Coordinates
-        let a shopper&apos;s live GPS position be matched to the nearest location later.
-      </p>
 
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <h2 className={styles.sectionHeading}>{form.id ? "Edit location" : "Add a location under a district"}</h2>
-        <label className={styles.label}>
-          District (city)
-          <select
-            className={styles.field}
-            value={form.districtId}
-            onChange={(e) => setForm((f) => ({ ...f, districtId: e.target.value }))}
-            required
-          >
-            <option value="" disabled>
-              Select a district
-            </option>
-            {districts.map((d) => (
-              <option key={d.value} value={d.value}>
-                {d.displayText}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={styles.label}>
-          Name
-          <input
-            className={styles.field}
-            value={form.name}
-            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            required
-          />
-        </label>
-        <label className={styles.label}>
-          Latitude
-          <input
-            className={styles.field}
-            type="number"
-            step="0.000001"
-            value={form.latitude}
-            onChange={(e) => setForm((f) => ({ ...f, latitude: e.target.value }))}
-          />
-        </label>
-        <label className={styles.label}>
-          Longitude
-          <input
-            className={styles.field}
-            type="number"
-            step="0.000001"
-            value={form.longitude}
-            onChange={(e) => setForm((f) => ({ ...f, longitude: e.target.value }))}
-          />
-        </label>
-        <button
-          type="button"
-          className={styles.locateButton}
-          onClick={useCurrentLocationForForm}
-          disabled={locatingNow}
-        >
-          {locatingNow ? "Detecting…" : "📍 Use my current location"}
-        </button>
-        <label className={styles.checkboxLabel}>
-          <input
-            type="checkbox"
-            checked={form.isActive}
-            onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
-          />
-          Active
-        </label>
-
-        {error && <ErrorBanner message={error} />}
-
-        <div className={styles.formActions}>
-          <button className={styles.submit} type="submit" disabled={submitting || !form.districtId}>
-            {submitting ? <LoadingSpinner /> : form.id ? "Save changes" : "Add location"}
-          </button>
-          {form.id && (
-            <button type="button" className={styles.secondary} onClick={() => setForm(EMPTY_FORM)}>
-              Cancel
-            </button>
-          )}
+      <div className={styles.topBar}>
+        <div className={styles.topBarHeadings}>
+          <h1 className={styles.heading}>Location master</h1>
+          <p className={styles.subheading}>
+            A locality within a district, e.g. &quot;Feroke&quot; within &quot;Kozhikode&quot;. Coordinates
+            let a shopper&apos;s live GPS position be matched to the nearest location later.
+          </p>
         </div>
-      </form>
+        <button type="button" className={styles.addButton} onClick={openAdd}>
+          + Add location
+        </button>
+      </div>
 
-      <h2 className={styles.sectionHeading}>Locations</h2>
       <label className={styles.label}>
         Filter by district
         <select
@@ -267,7 +201,7 @@ export function LocationMaster() {
                 {location.isActive ? "Active" : "Inactive"}
               </span>
               <div className={styles.rowActions}>
-                <button type="button" className={styles.editButton} onClick={() => handleEdit(location)}>
+                <button type="button" className={styles.editButton} onClick={() => openEdit(location)}>
                   Edit
                 </button>
                 <button
@@ -282,6 +216,82 @@ export function LocationMaster() {
             </div>
           ))}
         </div>
+      )}
+
+      {modalOpen && (
+        <Modal title={form.id ? "Edit location" : "Add a location under a district"} onClose={() => setModalOpen(false)}>
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <label className={styles.label}>
+              District (city)
+              <select
+                className={styles.field}
+                value={form.districtId}
+                onChange={(e) => setForm((f) => ({ ...f, districtId: e.target.value }))}
+                required
+              >
+                <option value="" disabled>
+                  Select a district
+                </option>
+                {districts.map((d) => (
+                  <option key={d.value} value={d.value}>
+                    {d.displayText}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className={styles.label}>
+              Name
+              <input
+                className={styles.field}
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                required
+              />
+            </label>
+            <label className={styles.label}>
+              Latitude
+              <input
+                className={styles.field}
+                type="number"
+                step="0.000001"
+                value={form.latitude}
+                onChange={(e) => setForm((f) => ({ ...f, latitude: e.target.value }))}
+              />
+            </label>
+            <label className={styles.label}>
+              Longitude
+              <input
+                className={styles.field}
+                type="number"
+                step="0.000001"
+                value={form.longitude}
+                onChange={(e) => setForm((f) => ({ ...f, longitude: e.target.value }))}
+              />
+            </label>
+            <button
+              type="button"
+              className={styles.locateButton}
+              onClick={useCurrentLocationForForm}
+              disabled={locatingNow}
+            >
+              {locatingNow ? "Detecting…" : "📍 Use my current location"}
+            </button>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={form.isActive}
+                onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
+              />
+              Active
+            </label>
+
+            {error && <ErrorBanner message={error} />}
+
+            <button className={styles.submit} type="submit" disabled={submitting || !form.districtId}>
+              {submitting ? <LoadingSpinner /> : form.id ? "Save changes" : "Add location"}
+            </button>
+          </form>
+        </Modal>
       )}
     </div>
   );

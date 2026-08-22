@@ -70,11 +70,12 @@ backend is from the full product vision:
   (`app/globals.css` is dark-only, `color-scheme: dark`, no light variant)
   plus a real `RetailerStrip` (deduped from actual nearby `Store` data, not
   a fake merchant list — tapping a tile browses that store's catalog via
-  `PriceCompareAppService`'s `StoreId` filter, and a small badge on each
-  tile opens `/store-flyer` — see Flyer feature below). The
-  Videos/Offers/Events tabs still have no backend support (no Video/Offer/
-  Event entities exist) and render as a "coming soon" placeholder. Treat the
-  mockup as target UI, not a spec of what the API currently returns.
+  `PriceCompareAppService`'s `StoreId` filter) and a `StoreFlyerBanner`
+  peek-carousel matching the mockup's "In the spotlight" banner (see Flyer
+  feature below). The Videos/Offers/Events tabs still have no backend
+  support (no Video/Offer/Event entities exist) and render as a "coming
+  soon" placeholder. Treat the mockup as target UI, not a spec of what the
+  API currently returns.
 
 ## Commands
 
@@ -237,34 +238,45 @@ source of most "why is this not tenant-scoped" questions:
   `SubmitPriceForMyStoreAsync` still creates a `Pending` price
   (`Source=RetailerReported`) that goes through the same moderation queue as
   crowdsourced submissions.
-- `Flyer`/`FlyerItem` (`Core/Pricing/Flyer.cs`, `FlyerItem.cs`,
-  `Application/Flyers/FlyerAppService.cs`) let a shop owner (or an admin
-  uploading on their behalf, via a second `UploadFlyerForStoreAsync` method)
-  upload a flyer photo instead of re-keying each item as a separate
-  product+price submission. Upload calls `IFlyerExtractionService.
-  ExtractAsync` to OCR/AI-detect `{name, price, bounding box}` per item; the
-  only implementation, `NoopFlyerExtractionService`, is an honest stand-in
-  that always returns zero items and logs — like `NoopSmsSender`/
-  `NoopNotifyShopOwnerService`, there is **no real OCR/AI integration yet**,
-  so every freshly uploaded flyer starts with nothing to review. Each
-  detected `FlyerItem` is best-effort auto-matched to an existing `Product`
-  via the same bidirectional-`Contains` idiom `PriceCompareAppService` uses
-  for keyword search (exact matches only; ambiguous/no matches are left
-  `null` for an admin to resolve manually). `FlyerAppService.
-  ModerateFlyerItemAsync` (gated `Pages_PriceModeration`, same permission as
-  `PriceSubmissionAppService`) lets an admin correct the matched product/
-  name/price/box before approving; approving inserts a real `Price` row
-  (`Source = PriceSource.FlyerOcr`) so flyer-sourced prices flow through the
-  exact same search/home-feed/freshness machinery as any other price — there
-  is no separate "flyer price" display path. `Flyer.Status` is a derived
-  display convenience (`FlyerStatus.Pending/Approved/Rejected`, recomputed
-  from its items' statuses after every moderation call), not an
-  independently-settable second moderation gate. Shoppers reach a store's
-  live (`Approved`) flyer at `/store-flyer?storeId=` (query param, not a
-  dynamic route segment — see the static-export note under Frontend below),
-  with clickable hotspots (percentage-of-image coordinates, not pixels, so
-  they stay correctly positioned at any render size) deep-linking into the
-  normal `/product?keyword=` results.
+- `Flyer` (`Core/Pricing/Flyer.cs`, `Application/Flyers/FlyerAppService.cs`)
+  is deliberately minimal: **admin-only**, **manual entry**, **no
+  moderation step** — an earlier OCR/AI-extraction design (a `FlyerItem`
+  entity with bounding boxes, a `NoopFlyerExtractionService` seam, a
+  shop-owner self-upload path, a pending-review queue) was built and then
+  torn out in favor of this simpler version; don't resurrect any of that
+  from memory or old docs. `FlyerAppService.CreateFlyerForStoreAsync`
+  (gated `Pages_PriceModeration`) takes a `StoreId`, an `ImageId`, and a
+  hand-typed list of `{name/productId, price, categoryId?}` line items in
+  one call; each line either picks an existing `Product` via `ProductId`,
+  or is matched by exact case-insensitive name against the catalog, or
+  creates a new `Product` (optionally under a category) if no match exists
+  — mirrors `ShopOwnerAppService.CreateMyProductAsync`'s "pre-verified
+  actor, goes live immediately" precedent. There is **no `FlyerItem`
+  table**: each line item is inserted directly as a real `Price` row
+  (`Source = PriceSource.Flyer`, `Status = Approved` immediately, nullable
+  `Price.FlyerId` FK back to the `Flyer`), so flyer-sourced prices flow
+  through the exact same search/home-feed/freshness machinery as any other
+  price — there is no separate "flyer price" display path, and `Flyer`
+  itself carries no status field (creating one *is* publishing it).
+  `ComparePricesInputDto.FlyerId` is a `PriceCompareAppService` filter (like
+  the existing `StoreId` one) that **deliberately skips the usual
+  bounding-box/radius geo-filtering** — `FlyerAppService.
+  GetRecentFlyersAsync` (backing the home screen's all-stores carousel)
+  isn't geo-scoped either, so a flyer from outside the shopper's configured
+  radius can legitimately be on screen, and silently returning zero results
+  for a valid tap would be confusing. Shoppers browse flyers via
+  `StoreFlyerBanner` (`components/home/StoreFlyerBanner.tsx`), a peek
+  carousel shown directly on `/home` — both an all-stores one (above "Top
+  Picks for You", populated from `GetRecentFlyersAsync`) and a per-store one
+  (above that store's results, from `GetFlyersForStoreAsync`, once a
+  `RetailerStrip` tile is tapped). Tapping a flyer slide calls
+  `useComparePrices().searchByFlyer` and renders results inline via the
+  same `ResultsList`/`PriceResultCard` used everywhere else — no page
+  navigation, no separate flyer-item UI. The standalone `/store-flyer?
+  storeId=` page (query param, not a dynamic route segment — see the
+  static-export note under Frontend below) still exists and still works,
+  but nothing currently links to it; it's an orphaned direct-URL view, not
+  dead code to delete on sight.
 - `Application/MasterData/Locations/` (`Location` entity,
   `Core/MasterData/Location.cs`) is a locality *within* a `District` (e.g.
   "Feroke" within "Kozhikode"), with optional lat/lng — **distinct from**
@@ -333,32 +345,35 @@ Three separate flows, each with its own auth path:
 - **Shopper** (OTP login, no registration step): `app/page.tsx` (splash,
   auto-redirects) → `app/phone-entry/` (`PhoneEntryForm`) → `app/otp-verify/`
   (`OtpVerifyForm`) → `app/home/` (search + `HomeFeed` sectioned product
-  feed + `RetailerStrip`) → `app/product/` (`?keyword=` query param, see
-  static-export note below; `ProductHeader` incl. `StarRatingInput` +
-  `ResultsList`) / `app/store-flyer/` (`?storeId=`, clickable flyer
-  hotspots, reached from a badge on a `RetailerStrip` tile).
+  feed + `RetailerStrip` + `StoreFlyerBanner`) → `app/product/` (`?keyword=`
+  query param, see static-export note below; `ProductHeader` incl.
+  `StarRatingInput` + `ResultsList`). `app/store-flyer/` (`?storeId=`)
+  still exists as a standalone deep link but isn't linked from anywhere in
+  the UI anymore — flyers are browsed inline on `/home` instead (see Flyer
+  feature above).
 - **Admin** (password login via `app/login/`, shared `LoginForm`):
   `app/admin/dashboard/`, `app/admin/stores/` (list/new/edit — creating a
   store also provisions its owner's login),
   `app/admin/moderation/prices/` (approve/flag/reject pending submissions),
-  `app/admin/flyers/new/` (upload a flyer on behalf of any store),
-  `app/admin/moderation/flyers/` + `.../review/` (`?id=`, per-flyer box
-  review/correction screen), `app/admin/categories/`,
-  `app/admin/locations/`, `app/admin/change-password/`.
+  `app/admin/flyers/new/` (`UploadFlyerForStoreForm` — store picker, photo,
+  and a dynamic add/remove list of item rows in one submit; deliberately
+  breaks out of the app's usual 480px mobile shell into a two-column split
+  at ≥860px, since it's a back-office form rather than shopper-facing UI —
+  see its own `.module.css` comment before changing that layout),
+  `app/admin/categories/`, `app/admin/locations/`,
+  `app/admin/change-password/`.
 - **Shop owner** (same password login as admin, role-routed):
-  `app/shop-owner/dashboard/` (own store + own products/prices + own
-  flyers), `app/shop-owner/products/new/` (create product + submit its
-  first price), `app/shop-owner/flyers/new/` (upload a flyer),
-  `app/shop-owner/change-password/`.
+  `app/shop-owner/dashboard/` (own store + own products/prices — no flyer
+  UI; flyer upload is admin-only), `app/shop-owner/products/new/` (create
+  product + submit its first price), `app/shop-owner/change-password/`.
 
-Several routes use a `?query=param` instead of a `[dynamicSegment]`
-(`/product?keyword=`, `/store-flyer?storeId=`, `/admin/moderation/flyers/
-review?id=`) — deliberate, since `next.config.ts` sets `output: "export"`
-for static hosting (Azure Static Web Apps), and a dynamic segment would need
-every possible value known at build time (`generateStaticParams`), which is
-impossible for arbitrary search terms/ids. Each such page wraps its
-`useSearchParams()` call in `<Suspense>`, which that hook requires under
-static export.
+Two routes use a `?query=param` instead of a `[dynamicSegment]`
+(`/product?keyword=`, `/store-flyer?storeId=`) — deliberate, since
+`next.config.ts` sets `output: "export"` for static hosting (Azure Static
+Web Apps), and a dynamic segment would need every possible value known at
+build time (`generateStaticParams`), which is impossible for arbitrary
+search terms/ids. Each such page wraps its `useSearchParams()` call in
+`<Suspense>`, which that hook requires under static export.
 
 `components/` has one subfolder per route area (`home/`, `product/`,
 `admin/`, `shop-owner/`, `store-flyer/`, `auth/`, `login/`, `splash/`) plus `common/` for
@@ -371,20 +386,17 @@ each component, not a global CSS framework.
 
 `lib/api/` has one file per backend area: `otpAuth.ts` (shopper OTP
 request/verify), `auth.ts` (admin/shop-owner password login),
-`priceCompare.ts` (search + `getHomeFeed`), `priceSubmission.ts`
-(crowdsourced submit + moderation queue), `adminCatalog.ts` (Category +
-Location CRUD, plus a read-only Product combobox used by flyer moderation),
-`adminStores.ts` (Store CRUD incl. owner provisioning), `geography.ts`
-(read-only Country→State→District comboboxes), `shopOwner.ts`
-(own-store/product/price endpoints), `flyer.ts` (upload for both
-shop-owner and admin-on-behalf-of-store, admin moderation queue, shopper
-live-flyer read), `ratings.ts`, `myAccount.ts` (self-service password
+`priceCompare.ts` (search + `getHomeFeed`, incl. flyer-scoped search),
+`priceSubmission.ts` (crowdsourced submit + moderation queue),
+`adminCatalog.ts` (Category + Location CRUD, plus a read-only Product
+combobox reused by the flyer upload form's "pick an existing product"
+option), `adminStores.ts` (Store CRUD incl. owner provisioning),
+`geography.ts` (read-only Country→State→District comboboxes),
+`shopOwner.ts` (own-store/product/price endpoints), `flyer.ts`
+(`createFlyerForStore`, `getFlyersForStore`, `getRecentFlyers` — see Flyer
+feature above), `ratings.ts`, `myAccount.ts` (self-service password
 change), `image.ts` — all going through `lib/api/client.ts`'s
-`fetchJson<T>()`. `lib/utils/boundingBox.ts` (percentage-of-image →
-CSS-position conversion) and `lib/hooks/useDraggableBox.ts`
-(pointer-capture drag-to-adjust, reusing `ImageCropModal`'s technique but in
-responsive percentage coordinates instead of its fixed-pixel canvas) back
-the flyer box-review UI.
+`fetchJson<T>()`.
 
 `lib/auth/` — `AuthContext.tsx` (exposes both `login` for password and
 `loginWithOtp` for OTP, plus `logout`/`isAuthenticated`/`isReady`) +

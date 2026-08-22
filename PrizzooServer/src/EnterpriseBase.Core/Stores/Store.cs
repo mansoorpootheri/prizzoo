@@ -13,8 +13,9 @@ namespace EnterpriseBase.Stores
     ///
     /// Deliberately NOT IMustHaveTenant: stores are the public inventory of the
     /// platform itself, visible to every shopper regardless of who manages them.
-    /// A retailer's own admin access (if/when self-service onboarding is built)
-    /// should be scoped via OwnerUserId, not via ABP tenancy.
+    /// There is no per-store owner login (that self-service model was built and
+    /// then removed) - a single Admin identity (phone+OTP) manages every store
+    /// directly, so there's nothing here to scope by owner.
     ///
     /// See DOCS/PRIZZOO_MIGRATION_NOTES.md for the reasoning behind this decision.
     /// </summary>
@@ -82,13 +83,6 @@ namespace EnterpriseBase.Stores
         /// </summary>
         [MaxLength(200)]
         public string CategoryTags { get; set; }
-
-        /// <summary>
-        /// The user account that manages this store's listings, once retailer
-        /// self-service login exists (Phase 3). Nullable for MVP, where prices
-        /// are collected via WhatsApp/manual field entry rather than self-serve.
-        /// </summary>
-        public long? OwnerUserId { get; set; }
 
         public bool IsVerified { get; set; } = false;
 

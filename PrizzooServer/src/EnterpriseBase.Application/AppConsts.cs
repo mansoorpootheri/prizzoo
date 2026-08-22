@@ -52,7 +52,7 @@ namespace EnterpriseBase
         public static TimeSpan RefreshTokenExpiration = TimeSpan.FromDays(365);
 
         /// <summary>
-        /// Shopper OTP sessions deliberately outlive the 1-day Admin/ShopOwner
+        /// Shopper OTP sessions deliberately outlive the 1-day Admin
         /// token (see EnterpriseBaseWebCoreModule.ConfigureTokenAuth) - a
         /// shopper should stay logged in across app visits until they
         /// actually log out, not be forced to re-verify their phone number

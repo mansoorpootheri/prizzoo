@@ -12,7 +12,6 @@ using EnterpriseBase.Authorization.Delegation;
 using EnterpriseBase.Authorization.Impersonation;
 using EnterpriseBase.Authorization.Roles;
 using EnterpriseBase.Authorization.Users;
-using EnterpriseBase.Branches;
 using EnterpriseBase.MultiTenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

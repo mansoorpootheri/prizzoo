@@ -5,10 +5,10 @@ using Abp.MultiTenancy;
 using EnterpriseBase.Authorization;
 using EnterpriseBase.Authorization.Roles;
 using EnterpriseBase.Authorization.Users;
-using EnterpriseBase.Branches;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace EnterpriseBase.EntityFrameworkCore.Seed.Tenants;
@@ -27,10 +27,6 @@ public class TenantRoleAndUserBuilder
     public void Create()
     {
         CreateRolesAndUsers();
-        new DefaultBranchCreator(_context, _tenantId).Create();
-        new DefaultEmployeeTypesCreator(_context, _tenantId).Create();
-        SeedAdminUserBranchMapping();
-        CreateShopOwnerRole();
         CreateShopperRole();
     }
 
@@ -73,50 +69,50 @@ public class TenantRoleAndUserBuilder
             _context.SaveChanges();
         }
 
-        // Admin user - Check both username and tenant to avoid duplicates
+        // Admin user - phone+OTP login only (see OtpAuthController), keyed
+        // by UserName == PhoneNumber == EnterpriseBaseConsts.InitialAdminPhoneNumber,
+        // same convention as the shopper accounts OtpAuthController.VerifyOtp
+        // creates on first login. No password is ever checked for this
+        // account; the hash below is a throwaway unusable value.
 
-        var adminUser = _context.Users.IgnoreQueryFilters().FirstOrDefault(u => u.TenantId == _tenantId && u.UserName == AbpUserBase.AdminUserName);
+        var adminUser = _context.Users.IgnoreQueryFilters().FirstOrDefault(u => u.TenantId == _tenantId && u.UserName == EnterpriseBaseConsts.InitialAdminPhoneNumber);
         if (adminUser == null)
         {
-            // Get tenant info to create unique email
-            var tenant = _context.Tenants.IgnoreQueryFilters().FirstOrDefault(t => t.Id == _tenantId);
-            var tenantName = tenant?.TenancyName ?? "defaulttenant";
-            var adminEmail = $"admin@{tenantName}.com";
-            
-            // Ensure email uniqueness across all tenants
-            var emailExists = _context.Users.IgnoreQueryFilters().Any(u => u.EmailAddress == adminEmail);
-            if (emailExists)
+            var phoneNumber = EnterpriseBaseConsts.InitialAdminPhoneNumber;
+            adminUser = new User
             {
-                adminEmail = $"admin@{tenantName}-{_tenantId}.com";
-            }
-
-            adminUser = User.CreateTenantAdminUser(_tenantId, adminEmail);
-            adminUser.Password = new PasswordHasher<User>(new OptionsWrapper<PasswordHasherOptions>(new PasswordHasherOptions())).HashPassword(adminUser, "123qwe");
-            adminUser.IsEmailConfirmed = true;
-            adminUser.IsActive = true;
+                TenantId = _tenantId,
+                UserName = phoneNumber,
+                Name = phoneNumber,
+                Surname = phoneNumber,
+                EmailAddress = $"{phoneNumber}@admin.prizzoo.local",
+                PhoneNumber = phoneNumber,
+                IsPhoneNumberConfirmed = true,
+                IsEmailConfirmed = true,
+                IsActive = true,
+                Roles = new List<UserRole>(),
+            };
+            adminUser.SetNormalizedNames();
+            adminUser.Password = new PasswordHasher<User>(new OptionsWrapper<PasswordHasherOptions>(new PasswordHasherOptions())).HashPassword(adminUser, User.CreateRandomPassword());
 
             _context.Users.Add(adminUser);
             _context.SaveChanges();
+        }
 
-            // Assign Admin role to admin user
+        // Ensure this account has the Admin role even if it already existed
+        // under a different role - e.g. this phone number logged in as a
+        // Shopper (via OtpAuthController) before being designated the
+        // initial admin, in which case the block above found an existing
+        // user and never touched its roles. Checked separately from
+        // creation so this self-heals on every startup regardless of when
+        // the account first appeared.
+        var alreadyAdmin = _context.UserRoles.IgnoreQueryFilters()
+            .Any(ur => ur.TenantId == _tenantId && ur.UserId == adminUser.Id && ur.RoleId == adminRole.Id);
+        if (!alreadyAdmin)
+        {
             _context.UserRoles.Add(new UserRole(_tenantId, adminUser.Id, adminRole.Id));
             _context.SaveChanges();
         }
-    }
-
-    private void CreateShopOwnerRole()
-    {
-        // Not IsDefault: role assignment happens when a host admin creates a
-        // store + owner account (StoreAppService.CreateAsync), not at
-        // registration - there is no self-service signup for this role.
-        var shopOwnerRole = _context.Roles.IgnoreQueryFilters().FirstOrDefault(r => r.TenantId == _tenantId && r.Name == StaticRoleNames.Tenants.ShopOwner);
-        if (shopOwnerRole == null)
-        {
-            shopOwnerRole = _context.Roles.Add(new Role(_tenantId, StaticRoleNames.Tenants.ShopOwner, StaticRoleNames.Tenants.ShopOwner) { IsStatic = true }).Entity;
-            _context.SaveChanges();
-        }
-
-        GrantPermissions(shopOwnerRole.Id, PermissionNames.Pages_ShopOwner);
     }
 
     private void CreateShopperRole()
@@ -157,32 +153,6 @@ public class TenantRoleAndUserBuilder
                     RoleId = roleId
                 })
             );
-            _context.SaveChanges();
-        }
-    }
-
-    private void SeedAdminUserBranchMapping()
-    {
-        var adminUser = _context.Users.IgnoreQueryFilters()
-            .FirstOrDefault(u => u.TenantId == _tenantId && u.UserName == AbpUserBase.AdminUserName);
-
-        var branch = _context.Branches.IgnoreQueryFilters()
-            .FirstOrDefault(b => b.TenantId == _tenantId && b.IsHeadOffice);
-
-        if (adminUser == null || branch == null) return;
-
-        var exists = _context.Set<UserBranchMapping>()
-            .IgnoreQueryFilters()
-            .Any(m => m.UserId == adminUser.Id && m.BranchId == branch.Id);
-
-        if (!exists)
-        {
-            _context.Set<UserBranchMapping>().Add(new UserBranchMapping
-            {
-                TenantId = _tenantId,
-                UserId   = adminUser.Id,
-                BranchId = branch.Id
-            });
             _context.SaveChanges();
         }
     }

@@ -111,20 +111,6 @@ namespace EnterpriseBase.Web.Host.Startup
                     icon: "fas fa-cogs"
                 )
                 .AddItem(new MenuItemDefinition(
-                    PageNames.Tenant.Branch,
-                    L("Branches"),
-                    url: "Branches",
-                    icon: "fas fa-sitemap",
-                    permissionDependency: new SimplePermissionDependency(PermissionNames.Pages_Administration_Branch)
-                ))
-                .AddItem(new MenuItemDefinition(
-                    PageNames.Tenant.Employee,
-                    L("Employees"),
-                    url: "Employees",
-                    icon: "fas fa-id-badge",
-                    permissionDependency: new SimplePermissionDependency(PermissionNames.Pages_Administration_Employee)
-                ))
-                .AddItem(new MenuItemDefinition(
                     PageNames.Users,
                     L("Users"),
                     url: "Users",

@@ -12,7 +12,7 @@ import styles from "./OtpVerifyForm.module.css";
 export function OtpVerifyForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { loginWithOtp } = useAuth();
+  const { login } = useAuth();
   const phoneNumber = searchParams.get("phone") ?? "";
 
   const [code, setCode] = useState("");
@@ -26,7 +26,7 @@ export function OtpVerifyForm() {
     setError(null);
     setSubmitting(true);
     try {
-      await loginWithOtp(phoneNumber, code);
+      await login(phoneNumber, code);
       router.replace("/home");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Incorrect OTP.");

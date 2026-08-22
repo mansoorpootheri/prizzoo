@@ -1,8 +1,6 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth/AuthContext";
 import { getStore, updateStore } from "@/lib/api/adminStores";
 import { getKeralaDistrictsForCombobox } from "@/lib/api/geography";
 import { getCategoriesForCombobox, getLocationsForCombobox } from "@/lib/api/adminCatalog";
@@ -15,12 +13,10 @@ import styles from "./AdminForm.module.css";
 
 interface EditStoreFormProps {
   storeId: string;
+  onSaved: () => void;
 }
 
-export function EditStoreForm({ storeId }: EditStoreFormProps) {
-  const router = useRouter();
-  const { isAuthenticated, isReady } = useAuth();
-
+export function EditStoreForm({ storeId, onSaved }: EditStoreFormProps) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -43,17 +39,8 @@ export function EditStoreForm({ storeId }: EditStoreFormProps) {
 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    if (isReady && !isAuthenticated) {
-      router.replace("/login");
-    }
-  }, [isReady, isAuthenticated, router]);
-
-  useEffect(() => {
-    if (!isReady || !isAuthenticated) return;
-
     Promise.all([getStore(storeId), getKeralaDistrictsForCombobox(), getCategoriesForCombobox()])
       .then(([store, districtList, categoryList]) => {
         setName(store.name);
@@ -90,7 +77,7 @@ export function EditStoreForm({ storeId }: EditStoreFormProps) {
       })
       .catch((err) => setLoadError(err instanceof ApiError ? err.message : "Could not load this store."))
       .finally(() => setLoading(false));
-  }, [isReady, isAuthenticated, storeId]);
+  }, [storeId]);
 
   // Only re-fetch locations on a *manual* district change, not the initial
   // load above (which already fetches the right list for the store's
@@ -126,7 +113,6 @@ export function EditStoreForm({ storeId }: EditStoreFormProps) {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
-    setSaved(false);
     setSubmitting(true);
     try {
       const districtName = districts.find((d) => d.value === districtId)?.displayText;
@@ -146,7 +132,7 @@ export function EditStoreForm({ storeId }: EditStoreFormProps) {
         isVerified,
         isActive,
       });
-      setSaved(true);
+      onSaved();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not save this store.");
     } finally {
@@ -154,161 +140,115 @@ export function EditStoreForm({ storeId }: EditStoreFormProps) {
     }
   }
 
-  if (!isReady || !isAuthenticated) {
-    return null;
-  }
-
   if (loading) {
-    return (
-      <div className={styles.root}>
-        <LoadingSpinner />
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (loadError) {
-    return (
-      <div className={styles.root}>
-        <button type="button" className={styles.back} onClick={() => router.back()}>
-          ← Back
-        </button>
-        <ErrorBanner message={loadError} />
-      </div>
-    );
+    return <ErrorBanner message={loadError} />;
   }
 
   return (
-    <div className={styles.root}>
-      <button type="button" className={styles.back} onClick={() => router.back()}>
-        ← Back
-      </button>
-      <h1 className={styles.heading}>Edit store</h1>
-
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <h2 className={styles.sectionHeading}>Shop details</h2>
-        <label className={styles.label}>
-          Shop name
-          <input
-            className={styles.field}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </label>
-        <label className={styles.label}>
-          Address
-          <input className={styles.field} value={address} onChange={(e) => setAddress(e.target.value)} />
-        </label>
-        <label className={styles.label}>
-          City (district)
-          <select
-            className={styles.field}
-            value={districtId}
-            onChange={(e) => {
-              setDistrictTouched(true);
-              setDistrictId(e.target.value);
-            }}
-            required
-          >
-            <option value="" disabled>
-              Select a city
+    <form className={styles.form} onSubmit={handleSubmit}>
+      <label className={styles.label}>
+        Shop name
+        <input className={styles.field} value={name} onChange={(e) => setName(e.target.value)} required />
+      </label>
+      <label className={styles.label}>
+        Address
+        <input className={styles.field} value={address} onChange={(e) => setAddress(e.target.value)} />
+      </label>
+      <label className={styles.label}>
+        City (district)
+        <select
+          className={styles.field}
+          value={districtId}
+          onChange={(e) => {
+            setDistrictTouched(true);
+            setDistrictId(e.target.value);
+          }}
+          required
+        >
+          <option value="" disabled>
+            Select a city
+          </option>
+          {districts.map((d) => (
+            <option key={d.value} value={d.value}>
+              {d.displayText}
             </option>
-            {districts.map((d) => (
-              <option key={d.value} value={d.value}>
-                {d.displayText}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={styles.label}>
-          Location (locality within the city)
-          <select
-            className={styles.field}
-            value={locationId}
-            onChange={(e) => setLocationId(e.target.value)}
-            disabled={!districtId}
-          >
-            <option value="">No specific location</option>
-            {locations.map((l) => (
-              <option key={l.value} value={l.value}>
-                {l.displayText}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={styles.label}>
-          Phone
-          <input
-            className={styles.field}
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
-        </label>
-        <label className={styles.label}>
-          Opening hours
-          <input
-            className={styles.field}
-            placeholder="e.g. 9am - 9pm"
-            value={openingHours}
-            onChange={(e) => setOpeningHours(e.target.value)}
-          />
-        </label>
-        <label className={styles.label}>
-          Category
-          <select
-            className={styles.field}
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-          >
-            <option value="">Select a category</option>
-            {categories.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.displayText}
-              </option>
-            ))}
-          </select>
-        </label>
-        <ImageUploadField label="Shop photo" value={imageId} onChange={setImageId} />
-        <div className={styles.locationNote}>
-          Location: {latitude.toFixed(6)}, {longitude.toFixed(6)}
-          {latitude === 0 && longitude === 0 && (
-            <div className={styles.body}>⚠ No real coordinates set - this store won&apos;t show up in nearby searches.</div>
-          )}
-          <button
-            type="button"
-            className={styles.locationButton}
-            onClick={useCurrentLocation}
-            disabled={locatingNow}
-          >
-            {locatingNow ? "Detecting…" : "📍 Use my current location"}
-          </button>
-        </div>
-
-        <label className={styles.checkboxLabel}>
-          <input
-            type="checkbox"
-            checked={isVerified}
-            onChange={(e) => setIsVerified(e.target.checked)}
-          />
-          Verified
-        </label>
-        <label className={styles.checkboxLabel}>
-          <input
-            type="checkbox"
-            checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
-          />
-          Active
-        </label>
-
-        {error && <ErrorBanner message={error} />}
-        {saved && !error && <p className={styles.body}>Saved.</p>}
-
-        <button className={styles.submit} type="submit" disabled={submitting}>
-          {submitting ? <LoadingSpinner /> : "Save changes"}
+          ))}
+        </select>
+      </label>
+      <label className={styles.label}>
+        Location (locality within the city)
+        <select
+          className={styles.field}
+          value={locationId}
+          onChange={(e) => setLocationId(e.target.value)}
+          disabled={!districtId}
+        >
+          <option value="">No specific location</option>
+          {locations.map((l) => (
+            <option key={l.value} value={l.value}>
+              {l.displayText}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className={styles.label}>
+        Phone
+        <input className={styles.field} type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+      </label>
+      <label className={styles.label}>
+        Opening hours
+        <input
+          className={styles.field}
+          placeholder="e.g. 9am - 9pm"
+          value={openingHours}
+          onChange={(e) => setOpeningHours(e.target.value)}
+        />
+      </label>
+      <label className={styles.label}>
+        Category
+        <select className={styles.field} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+          <option value="">Select a category</option>
+          {categories.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.displayText}
+            </option>
+          ))}
+        </select>
+      </label>
+      <ImageUploadField label="Shop photo" value={imageId} onChange={setImageId} />
+      <div className={styles.locationNote}>
+        Location: {latitude.toFixed(6)}, {longitude.toFixed(6)}
+        {latitude === 0 && longitude === 0 && (
+          <div className={styles.body}>⚠ No real coordinates set - this store won&apos;t show up in nearby searches.</div>
+        )}
+        <button
+          type="button"
+          className={styles.locationButton}
+          onClick={useCurrentLocation}
+          disabled={locatingNow}
+        >
+          {locatingNow ? "Detecting…" : "📍 Use my current location"}
         </button>
-      </form>
-    </div>
+      </div>
+
+      <label className={styles.checkboxLabel}>
+        <input type="checkbox" checked={isVerified} onChange={(e) => setIsVerified(e.target.checked)} />
+        Verified
+      </label>
+      <label className={styles.checkboxLabel}>
+        <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
+        Active
+      </label>
+
+      {error && <ErrorBanner message={error} />}
+
+      <button className={styles.submit} type="submit" disabled={submitting}>
+        {submitting ? <LoadingSpinner /> : "Save changes"}
+      </button>
+    </form>
   );
 }

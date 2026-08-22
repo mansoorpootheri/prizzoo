@@ -14,6 +14,9 @@ interface LocationBarProps {
   menuOpen: boolean;
   onToggleMenu: () => void;
   onLogout: () => void;
+  /** True when the logged-in user has the Admin role (see AuthContext.isAdmin) - shows the "Admin" menu item below. */
+  isAdmin: boolean;
+  onGoToAdmin: () => void;
 }
 
 // Matches DOCS/topbar.png: pin badge + city/country on the left, always
@@ -21,8 +24,10 @@ interface LocationBarProps {
 // swaps that right-hand area for an inline search field that grows out
 // from its own left edge (right where the location block ends), rather
 // than a separate row below or an overlay that hides the location. The
-// profile circle is a real account menu (just Logout for now - shoppers
-// have no account-settings screen yet, unlike the Admin/ShopOwner portals).
+// profile circle is a real account menu - Logout always, plus "Admin" when
+// the logged-in user has that role (there's no separate admin login/portal
+// entry point anymore - everyone lands here, admin reaches the admin
+// screens from this menu).
 export function LocationBar({
   isLocating,
   isFallback,
@@ -34,6 +39,8 @@ export function LocationBar({
   menuOpen,
   onToggleMenu,
   onLogout,
+  isAdmin,
+  onGoToAdmin,
 }: LocationBarProps) {
   const [keyword, setKeyword] = useState("");
 
@@ -72,6 +79,11 @@ export function LocationBar({
               </button>
               {menuOpen && (
                 <div className={styles.menu}>
+                  {isAdmin && (
+                    <button type="button" className={styles.menuItem} onClick={onGoToAdmin}>
+                      Admin
+                    </button>
+                  )}
                   <button type="button" className={styles.menuItem} onClick={onLogout}>
                     Logout
                   </button>

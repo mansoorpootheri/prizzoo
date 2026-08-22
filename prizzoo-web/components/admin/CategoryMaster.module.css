@@ -31,6 +31,35 @@
   color: var(--color-foreground-muted);
 }
 
+.topBar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.topBarHeadings {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.topBarHeadings .subheading {
+  margin-top: 0;
+}
+
+.addButton {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--color-accent);
+  color: #04140c;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .sectionHeading {
   margin-top: 8px;
   font-size: 13px;
@@ -144,12 +173,16 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
   padding: 14px 16px;
   border-radius: var(--radius-md);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   text-decoration: none;
   color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .info {

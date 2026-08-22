@@ -9,6 +9,7 @@ import { ApiError } from "@/lib/api/client";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { ErrorBanner } from "@/components/common/ErrorBanner";
 import { EmptyState } from "@/components/common/EmptyState";
+import { Modal } from "@/components/common/Modal";
 import styles from "./CategoryMaster.module.css";
 
 interface CategoryFormState {
@@ -29,19 +30,22 @@ const EMPTY_FORM: CategoryFormState = {
 
 export function CategoryMaster() {
   const router = useRouter();
-  const { isAuthenticated, isReady } = useAuth();
+  const { isAuthenticated, isAdmin, isReady } = useAuth();
   const [categories, setCategories] = useState<AdminCategory[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<CategoryFormState>(EMPTY_FORM);
+  const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [actingId, setActingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isReady && !isAuthenticated) {
-      router.replace("/login");
+      router.replace("/phone-entry");
+    } else if (isReady && isAuthenticated && !isAdmin) {
+      router.replace("/home");
     }
-  }, [isReady, isAuthenticated, router]);
+  }, [isReady, isAuthenticated, isAdmin, router]);
 
   function load() {
     setLoading(true);
@@ -57,6 +61,22 @@ export function CategoryMaster() {
     load();
   }, [isReady, isAuthenticated]);
 
+  function openAdd() {
+    setForm(EMPTY_FORM);
+    setModalOpen(true);
+  }
+
+  function openEdit(category: AdminCategory) {
+    setForm({
+      id: category.id,
+      name: category.name,
+      code: category.code ?? "",
+      description: category.description ?? "",
+      isActive: category.isActive,
+    });
+    setModalOpen(true);
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
@@ -69,7 +89,7 @@ export function CategoryMaster() {
         description: form.description || undefined,
         isActive: form.isActive,
       });
-      setForm(EMPTY_FORM);
+      setModalOpen(false);
       load();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not save this category.");
@@ -78,25 +98,12 @@ export function CategoryMaster() {
     }
   }
 
-  function handleEdit(category: AdminCategory) {
-    setForm({
-      id: category.id,
-      name: category.name,
-      code: category.code ?? "",
-      description: category.description ?? "",
-      isActive: category.isActive,
-    });
-  }
-
   async function handleDelete(id: string) {
     setActingId(id);
     setError(null);
     try {
       await deleteCategory(id);
       setCategories((prev) => prev?.filter((c) => c.id !== id) ?? null);
-      if (form.id === id) {
-        setForm(EMPTY_FORM);
-      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not delete this category.");
     } finally {
@@ -104,7 +111,7 @@ export function CategoryMaster() {
     }
   }
 
-  if (!isReady || !isAuthenticated) {
+  if (!isReady || !isAuthenticated || !isAdmin) {
     return null;
   }
 
@@ -113,62 +120,19 @@ export function CategoryMaster() {
       <button type="button" className={styles.back} onClick={() => router.back()}>
         ← Back
       </button>
-      <h1 className={styles.heading}>Category master</h1>
-      <p className={styles.subheading}>
-        Shared public catalog data, used by every product - not tenant-scoped.
-      </p>
 
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <h2 className={styles.sectionHeading}>{form.id ? "Edit category" : "Add a category"}</h2>
-        <label className={styles.label}>
-          Name
-          <input
-            className={styles.field}
-            value={form.name}
-            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            required
-          />
-        </label>
-        <label className={styles.label}>
-          Code
-          <input
-            className={styles.field}
-            value={form.code}
-            onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
-          />
-        </label>
-        <label className={styles.label}>
-          Description
-          <input
-            className={styles.field}
-            value={form.description}
-            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-          />
-        </label>
-        <label className={styles.checkboxLabel}>
-          <input
-            type="checkbox"
-            checked={form.isActive}
-            onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
-          />
-          Active
-        </label>
-
-        {error && <ErrorBanner message={error} />}
-
-        <div className={styles.formActions}>
-          <button className={styles.submit} type="submit" disabled={submitting}>
-            {submitting ? <LoadingSpinner /> : form.id ? "Save changes" : "Add category"}
-          </button>
-          {form.id && (
-            <button type="button" className={styles.secondary} onClick={() => setForm(EMPTY_FORM)}>
-              Cancel
-            </button>
-          )}
+      <div className={styles.topBar}>
+        <div className={styles.topBarHeadings}>
+          <h1 className={styles.heading}>Category master</h1>
+          <p className={styles.subheading}>
+            Shared public catalog data, used by every product - not tenant-scoped.
+          </p>
         </div>
-      </form>
+        <button type="button" className={styles.addButton} onClick={openAdd}>
+          + Add category
+        </button>
+      </div>
 
-      <h2 className={styles.sectionHeading}>All categories</h2>
       {loading && <LoadingSpinner />}
       {!loading && (!categories || categories.length === 0) && (
         <EmptyState message="No categories yet." />
@@ -188,7 +152,7 @@ export function CategoryMaster() {
                 {category.isActive ? "Active" : "Inactive"}
               </span>
               <div className={styles.rowActions}>
-                <button type="button" className={styles.editButton} onClick={() => handleEdit(category)}>
+                <button type="button" className={styles.editButton} onClick={() => openEdit(category)}>
                   Edit
                 </button>
                 <button
@@ -203,6 +167,52 @@ export function CategoryMaster() {
             </div>
           ))}
         </div>
+      )}
+
+      {modalOpen && (
+        <Modal title={form.id ? "Edit category" : "Add a category"} onClose={() => setModalOpen(false)}>
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <label className={styles.label}>
+              Name
+              <input
+                className={styles.field}
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                required
+              />
+            </label>
+            <label className={styles.label}>
+              Code
+              <input
+                className={styles.field}
+                value={form.code}
+                onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
+              />
+            </label>
+            <label className={styles.label}>
+              Description
+              <input
+                className={styles.field}
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              />
+            </label>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={form.isActive}
+                onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
+              />
+              Active
+            </label>
+
+            {error && <ErrorBanner message={error} />}
+
+            <button className={styles.submit} type="submit" disabled={submitting}>
+              {submitting ? <LoadingSpinner /> : form.id ? "Save changes" : "Add category"}
+            </button>
+          </form>
+        </Modal>
       )}
     </div>
   );

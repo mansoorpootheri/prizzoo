@@ -7,28 +7,36 @@ import {
   useEffect,
   useState,
 } from "react";
-import { authenticate } from "../api/auth";
 import { verifyOtp } from "../api/otpAuth";
 import { clearToken, getToken, setToken } from "./token-storage";
+import { decodeJwtRoles } from "./jwt";
 
 interface AuthContextValue {
   isAuthenticated: boolean;
+  // Derived from the JWT's role claim - lets the UI show admin-only
+  // affordances (the "Admin" account-menu item, the /admin/* guards).
+  // Never used for an actual authorization decision - the backend enforces
+  // [AbpAuthorize] independently regardless of what the UI shows/hides.
+  isAdmin: boolean;
   isReady: boolean;
-  // Password login - host Admin and ShopOwner only, reached via the
-  // "Login to admin panel" link.
-  login: (userNameOrEmailAddress: string, password: string) => Promise<void>;
-  // Phone+OTP login - the only way a shopper authenticates. Both paths
-  // write to the same single token slot: logging into one role's session
-  // replaces the other in the same browser (no parallel dual-session
-  // storage for this pass).
-  loginWithOtp: (phoneNumber: string, code: string) => Promise<void>;
+  // Phone+OTP - the only login path for everyone, admin included. Whether
+  // a phone number logs in as Admin or Shopper is decided server-side
+  // (OtpAuthController) by whether that phone number already has the
+  // Admin role, not by anything the client sends.
+  login: (phoneNumber: string, code: string) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function computeIsAdmin(): boolean {
+  const token = getToken();
+  return token !== null && decodeJwtRoles(token).includes("Admin");
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -37,31 +45,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // on both the server and the first client pass, then reveals afterward.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsAuthenticated(getToken() !== null);
+    setIsAdmin(computeIsAdmin());
     setIsReady(true);
   }, []);
 
-  const login = useCallback(
-    async (userNameOrEmailAddress: string, password: string) => {
-      const result = await authenticate(userNameOrEmailAddress, password);
-      setToken(result.accessToken, result.expireInSeconds);
-      setIsAuthenticated(true);
-    },
-    []
-  );
-
-  const loginWithOtp = useCallback(async (phoneNumber: string, code: string) => {
+  const login = useCallback(async (phoneNumber: string, code: string) => {
     const result = await verifyOtp(phoneNumber, code);
     setToken(result.accessToken, result.expireInSeconds);
     setIsAuthenticated(true);
+    setIsAdmin(computeIsAdmin());
   }, []);
 
   const logout = useCallback(() => {
     clearToken();
     setIsAuthenticated(false);
+    setIsAdmin(false);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isReady, login, loginWithOtp, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isAdmin, isReady, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -22,11 +22,7 @@ using EnterpriseBase.MultiTenancy;
 using EnterpriseBase.MultiTenancy.Dto;
 using EnterpriseBase.Sessions.Dto;
 using EnterpriseBase.Geography;
-using EnterpriseBase.Branches;
-using EnterpriseBase.Branches.Dto;
 using EnterpriseBase.Geography.Dto;
-using EnterpriseBase.Employees;
-using EnterpriseBase.Employees.Dto;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using EnterpriseBase.Application.Subscriptions.Dto;
@@ -57,12 +53,6 @@ namespace EnterpriseBase
             configuration.CreateMap<FlatFeatureSelectDto, Feature>().ReverseMap();
             configuration.CreateMap<Feature, FlatFeatureDto>();
 
-            //Branch
-            configuration.CreateMap<CreateBranchEditDto, Branch>().ReverseMap();
-            configuration.CreateMap<BranchDto, Branch>().ReverseMap();
-            configuration.CreateMap<BranchDto, CreateBranchEditDto>().ReverseMap();
-            configuration.CreateMap<Branch, BranchDto>().ReverseMap();
-            configuration.CreateMap<Branch, CreateBranchEditDto>();           
             //Geography
             configuration.CreateMap<Country, CountryDto>().ReverseMap();
             configuration.CreateMap<CreateCountryDto, Country>();
@@ -81,19 +71,6 @@ namespace EnterpriseBase
             configuration.CreateMap<CreateDistrictDto, District>();
             configuration.CreateMap<UpdateDistrictDto, District>();
             configuration.CreateMap<UpdateDistrictDto, DistrictDto>().ReverseMap();           
-
-            //EmployeeType
-            configuration.CreateMap<CreateEmployeeTypeEditDto, EmployeeType>().ReverseMap();
-            configuration.CreateMap<EmployeeTypeDto, EmployeeType>().ReverseMap();
-            configuration.CreateMap<EmployeeTypeDto, CreateEmployeeTypeEditDto>();
-
-            //Employee
-            configuration.CreateMap<CreateEmployeeEditDto, Employee>().ReverseMap();
-            configuration.CreateMap<EmployeeDto, Employee>().ReverseMap();
-            configuration.CreateMap<EmployeeDto, CreateEmployeeEditDto>();
-            configuration.CreateMap<Employee, EmployeeDto>()
-                .ForMember(dest => dest.EmployeeTypeName, opt => opt.MapFrom(src => src.EmployeeType != null ? src.EmployeeType.Name : null))
-                .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch != null ? src.Branch.BranchName : null));
 
             //Subscription
             configuration.CreateMap<Edition, EditionInfoDto>();

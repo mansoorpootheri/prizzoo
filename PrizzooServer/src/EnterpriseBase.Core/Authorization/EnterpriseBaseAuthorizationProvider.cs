@@ -32,26 +32,6 @@ public class EnterpriseBaseAuthorizationProvider : AuthorizationProvider
         administration.CreateChildPermission(PermissionNames.Pages_Administration_Host_Settings, L("Settings"), multiTenancySides: MultiTenancySides.Host);
         administration.CreateChildPermission(PermissionNames.Pages_Administration_Tenant_Settings, L("Settings"), multiTenancySides: MultiTenancySides.Tenant);
 
-        // Branches
-        var branches = administration.CreateChildPermission(PermissionNames.Pages_Administration_Branch, L("Branches"), multiTenancySides: MultiTenancySides.Tenant);
-        branches.CreateChildPermission(PermissionNames.Pages_Administration_Branch_View, L("ViewBranches"), multiTenancySides: MultiTenancySides.Tenant);
-        branches.CreateChildPermission(PermissionNames.Pages_Administration_Branch_Create, L("CreateBranches"), multiTenancySides: MultiTenancySides.Tenant);
-        branches.CreateChildPermission(PermissionNames.Pages_Administration_Branch_Edit, L("EditBranches"), multiTenancySides: MultiTenancySides.Tenant);
-        branches.CreateChildPermission(PermissionNames.Pages_Administration_Branch_Delete, L("DeleteBranches"), multiTenancySides: MultiTenancySides.Tenant);
-
-        // Employee Types
-        var employeeTypes = administration.CreateChildPermission(PermissionNames.Pages_Administration_EmployeeType, L("EmployeeTypes"), multiTenancySides: MultiTenancySides.Tenant);
-        employeeTypes.CreateChildPermission(PermissionNames.Pages_Administration_EmployeeType_Create, L("CreateEmployeeTypes"), multiTenancySides: MultiTenancySides.Tenant);
-        employeeTypes.CreateChildPermission(PermissionNames.Pages_Administration_EmployeeType_Edit, L("EditEmployeeTypes"), multiTenancySides: MultiTenancySides.Tenant);
-        employeeTypes.CreateChildPermission(PermissionNames.Pages_Administration_EmployeeType_Delete, L("DeleteEmployeeTypes"), multiTenancySides: MultiTenancySides.Tenant);
-
-        // Employees
-        var employees = administration.CreateChildPermission(PermissionNames.Pages_Administration_Employee, L("Employees"), multiTenancySides: MultiTenancySides.Tenant);
-        employees.CreateChildPermission(PermissionNames.Pages_Administration_Employee_View, L("ViewEmployees"), multiTenancySides: MultiTenancySides.Tenant);
-        employees.CreateChildPermission(PermissionNames.Pages_Administration_Employee_Create, L("CreateEmployees"), multiTenancySides: MultiTenancySides.Tenant);
-        employees.CreateChildPermission(PermissionNames.Pages_Administration_Employee_Edit, L("EditEmployees"), multiTenancySides: MultiTenancySides.Tenant);
-        employees.CreateChildPermission(PermissionNames.Pages_Administration_Employee_Delete, L("DeleteEmployees"), multiTenancySides: MultiTenancySides.Tenant);
-
         // Taxes
         var taxes = administration.CreateChildPermission(PermissionNames.Pages_Administration_Taxes, L("Taxes"), multiTenancySides: MultiTenancySides.Tenant);
         taxes.CreateChildPermission(PermissionNames.Pages_Administration_Taxes_Create, L("CreateTaxes"), multiTenancySides: MultiTenancySides.Tenant);
@@ -89,48 +69,50 @@ public class EnterpriseBaseAuthorizationProvider : AuthorizationProvider
         context.CreatePermission(PermissionNames.Pages_Administration_Host_Dashboard, L("Dashboard"), multiTenancySides: MultiTenancySides.Host);
 
         // Prizzoo: Products / catalog
-        // Pages_Products (read/list) and Pages_Products_Edit are also granted
-        // to Tenant so the tenant Admin (admin@Default.com) can moderate
-        // pending products from the same login used for retailer-application
-        // moderation. Create/Delete deliberately stay Host-only.
+        // Every permission below is Host | Tenant - the single Admin
+        // account (phone+OTP, tenant-side) is now the only real admin
+        // identity this app's frontend uses, so it needs full CRUD, not
+        // the old Host-only carve-outs from when a separate host admin
+        // handled catalog master data.
         var products = context.CreatePermission(PermissionNames.Pages_Products, L("Products"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
-        products.CreateChildPermission(PermissionNames.Pages_Products_Create, L("CreateProducts"), multiTenancySides: MultiTenancySides.Host);
+        products.CreateChildPermission(PermissionNames.Pages_Products_Create, L("CreateProducts"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
         products.CreateChildPermission(PermissionNames.Pages_Products_Edit, L("EditProducts"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
-        products.CreateChildPermission(PermissionNames.Pages_Products_Delete, L("DeleteProducts"), multiTenancySides: MultiTenancySides.Host);
+        products.CreateChildPermission(PermissionNames.Pages_Products_Delete, L("DeleteProducts"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
 
-        var categories = products.CreateChildPermission(PermissionNames.Pages_Products_Categories, L("Categories"), multiTenancySides: MultiTenancySides.Host);
-        categories.CreateChildPermission(PermissionNames.Pages_Products_Categories_Create, L("CreateCategories"), multiTenancySides: MultiTenancySides.Host);
-        categories.CreateChildPermission(PermissionNames.Pages_Products_Categories_Edit, L("EditCategories"), multiTenancySides: MultiTenancySides.Host);
-        categories.CreateChildPermission(PermissionNames.Pages_Products_Categories_Delete, L("DeleteCategories"), multiTenancySides: MultiTenancySides.Host);
+        var categories = products.CreateChildPermission(PermissionNames.Pages_Products_Categories, L("Categories"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
+        categories.CreateChildPermission(PermissionNames.Pages_Products_Categories_Create, L("CreateCategories"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
+        categories.CreateChildPermission(PermissionNames.Pages_Products_Categories_Edit, L("EditCategories"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
+        categories.CreateChildPermission(PermissionNames.Pages_Products_Categories_Delete, L("DeleteCategories"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
 
-        var units = products.CreateChildPermission(PermissionNames.Pages_Products_Units, L("Units"), multiTenancySides: MultiTenancySides.Host);
-        units.CreateChildPermission(PermissionNames.Pages_Products_Units_Create, L("CreateUnits"), multiTenancySides: MultiTenancySides.Host);
-        units.CreateChildPermission(PermissionNames.Pages_Products_Units_Edit, L("EditUnits"), multiTenancySides: MultiTenancySides.Host);
-        units.CreateChildPermission(PermissionNames.Pages_Products_Units_Delete, L("DeleteUnits"), multiTenancySides: MultiTenancySides.Host);
+        var units = products.CreateChildPermission(PermissionNames.Pages_Products_Units, L("Units"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
+        units.CreateChildPermission(PermissionNames.Pages_Products_Units_Create, L("CreateUnits"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
+        units.CreateChildPermission(PermissionNames.Pages_Products_Units_Edit, L("EditUnits"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
+        units.CreateChildPermission(PermissionNames.Pages_Products_Units_Delete, L("DeleteUnits"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
 
         // Prizzoo: Stores
-        var stores = context.CreatePermission(PermissionNames.Pages_Stores, L("Stores"), multiTenancySides: MultiTenancySides.Host);
-        stores.CreateChildPermission(PermissionNames.Pages_Stores_Create, L("CreateStores"), multiTenancySides: MultiTenancySides.Host);
-        stores.CreateChildPermission(PermissionNames.Pages_Stores_Edit, L("EditStores"), multiTenancySides: MultiTenancySides.Host);
-        stores.CreateChildPermission(PermissionNames.Pages_Stores_Delete, L("DeleteStores"), multiTenancySides: MultiTenancySides.Host);
+        var stores = context.CreatePermission(PermissionNames.Pages_Stores, L("Stores"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
+        stores.CreateChildPermission(PermissionNames.Pages_Stores_Create, L("CreateStores"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
+        stores.CreateChildPermission(PermissionNames.Pages_Stores_Edit, L("EditStores"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
+        stores.CreateChildPermission(PermissionNames.Pages_Stores_Delete, L("DeleteStores"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
 
         // Prizzoo: Location master data (District already has its own
         // Pages_Geography_Districts CRUD, seeded/registered below)
-        var locations = context.CreatePermission(PermissionNames.Pages_Locations, L("Locations"), multiTenancySides: MultiTenancySides.Host);
-        locations.CreateChildPermission(PermissionNames.Pages_Locations_Create, L("CreateLocations"), multiTenancySides: MultiTenancySides.Host);
-        locations.CreateChildPermission(PermissionNames.Pages_Locations_Edit, L("EditLocations"), multiTenancySides: MultiTenancySides.Host);
-        locations.CreateChildPermission(PermissionNames.Pages_Locations_Delete, L("DeleteLocations"), multiTenancySides: MultiTenancySides.Host);
+        var locations = context.CreatePermission(PermissionNames.Pages_Locations, L("Locations"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
+        locations.CreateChildPermission(PermissionNames.Pages_Locations_Create, L("CreateLocations"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
+        locations.CreateChildPermission(PermissionNames.Pages_Locations_Edit, L("EditLocations"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
+        locations.CreateChildPermission(PermissionNames.Pages_Locations_Delete, L("DeleteLocations"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
 
         // Prizzoo: Price moderation
-        // Also granted to Tenant so admin@Default.com can moderate prices
-        // from the same login as retailer-application/product moderation.
         context.CreatePermission(PermissionNames.Pages_PriceModeration, L("PriceModeration"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
-
-        // Prizzoo: shop owner portal (host-admin-provisioned, no self-service signup)
-        context.CreatePermission(PermissionNames.Pages_ShopOwner, L("ShopOwner"), multiTenancySides: MultiTenancySides.Tenant);
 
         // Prizzoo: OTP-verified shopper browsing
         context.CreatePermission(PermissionNames.Pages_Shopper, L("Shopper"), multiTenancySides: MultiTenancySides.Tenant);
+
+        // Prizzoo: admin account management (add further admin phone numbers)
+        context.CreatePermission(PermissionNames.Pages_Admins, L("Admins"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
+
+        // Prizzoo: read-only list of shopper accounts registered via OTP login
+        context.CreatePermission(PermissionNames.Pages_RegisteredUsers, L("RegisteredUsers"), multiTenancySides: MultiTenancySides.Host | MultiTenancySides.Tenant);
     }
 
     private static ILocalizableString L(string name)

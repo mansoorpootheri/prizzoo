@@ -26,23 +26,6 @@ namespace EnterpriseBase.Authorization
         public const string Pages_Administration_Host_Dashboard = "Pages.Administration.Host.Dashboard";
         public const string Pages_Administration_AuditLogs = "Pages.Administration.AuditLogs";
 
-        public const string Pages_Administration_Branch = "Pages.Administration.Branch";
-        public const string Pages_Administration_Branch_View = "Pages.Administration.Branch.View";
-        public const string Pages_Administration_Branch_Create = "Pages.Administration.Branch.Create";
-        public const string Pages_Administration_Branch_Edit = "Pages.Administration.Branch.Edit";
-        public const string Pages_Administration_Branch_Delete = "Pages.Administration.Branch.Delete";
-
-        public const string Pages_Administration_EmployeeType = "Pages.Administration.EmployeeType";
-        public const string Pages_Administration_EmployeeType_Create = "Pages.Administration.EmployeeType.Create";
-        public const string Pages_Administration_EmployeeType_Edit = "Pages.Administration.EmployeeType.Edit";
-        public const string Pages_Administration_EmployeeType_Delete = "Pages.Administration.EmployeeType.Delete";
-
-        public const string Pages_Administration_Employee = "Pages.Administration.Employee";
-        public const string Pages_Administration_Employee_View = "Pages.Administration.Employee.View";
-        public const string Pages_Administration_Employee_Create = "Pages.Administration.Employee.Create";
-        public const string Pages_Administration_Employee_Edit = "Pages.Administration.Employee.Edit";
-        public const string Pages_Administration_Employee_Delete = "Pages.Administration.Employee.Delete";
-
         public const string Pages_Administration_Taxes = "Pages.Administration.Taxes";
         public const string Pages_Administration_Taxes_Create = "Pages.Administration.Taxes.Create";
         public const string Pages_Administration_Taxes_Edit = "Pages.Administration.Taxes.Edit";
@@ -112,10 +95,13 @@ namespace EnterpriseBase.Authorization
         // Prizzoo: Price moderation
         public const string Pages_PriceModeration = "Pages.PriceModeration";
 
-        // Prizzoo: shop owner portal (host-admin-provisioned, no self-service signup)
-        public const string Pages_ShopOwner = "Pages.ShopOwner";
-
         // Prizzoo: OTP-verified shopper browsing
         public const string Pages_Shopper = "Pages.Shopper";
+
+        // Prizzoo: admin account management (add further admin phone numbers)
+        public const string Pages_Admins = "Pages.Admins";
+
+        // Prizzoo: read-only list of shopper accounts registered via OTP login
+        public const string Pages_RegisteredUsers = "Pages.RegisteredUsers";
     }
 }

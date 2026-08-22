@@ -31,8 +31,6 @@ public class CreateUserDto : IShouldNormalize
 
     public string[] RoleNames { get; set; }
 
-    public int[] BranchIds { get; set; }
-
     [Required]
     [StringLength(AbpUserBase.MaxPlainPasswordLength)]
     [DisableAuditing]
@@ -43,10 +41,6 @@ public class CreateUserDto : IShouldNormalize
         if (RoleNames == null)
         {
             RoleNames = new string[0];
-        }
-        if (BranchIds == null)
-        {
-            BranchIds = new int[0];
         }
     }
 }

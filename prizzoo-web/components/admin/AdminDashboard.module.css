@@ -18,6 +18,12 @@
   color: var(--color-foreground);
 }
 
+.topBarActions {
+  display: flex;
+  gap: 8px;
+}
+
+.backButton,
 .logoutButton {
   padding: 8px 14px;
   border-radius: var(--radius-md);
@@ -27,6 +33,20 @@
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionHeading {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-foreground-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .linkList {

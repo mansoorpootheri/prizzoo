@@ -22,7 +22,7 @@ import styles from "./page.module.css";
 
 export default function Page() {
   const router = useRouter();
-  const { isAuthenticated, isReady, logout } = useAuth();
+  const { isAuthenticated, isAdmin, isReady, logout } = useAuth();
   const { coordinates, isLocating, isFallback } = useGeolocation();
   const { data, loading, error, search, searchByStore, searchByFlyer } = useComparePrices();
   const { data: feedSections, loading: feedLoading, error: feedError, load: loadFeed } = useHomeFeed();
@@ -187,6 +187,8 @@ export default function Page() {
           menuOpen={accountMenuOpen}
           onToggleMenu={() => setAccountMenuOpen((open) => !open)}
           onLogout={handleLogout}
+          isAdmin={isAdmin}
+          onGoToAdmin={() => router.push("/admin/dashboard")}
         />
         <TopTabBar
           categories={categoryChips}

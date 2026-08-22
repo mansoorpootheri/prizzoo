@@ -32,7 +32,6 @@ public class DefaultEditionCreator
     {
         var edition = GetOrCreateEdition("Free", "Free Plan", monthlyPrice: null, annualPrice: null, trialDays: 30);
         SetFeature(edition.Id, AppFeatures.MaxUserCount, "1");
-        SetFeature(edition.Id, AppFeatures.MaxBranchCount, "1");
         SetFeature(edition.Id, AppFeatures.MaxTransactionEntries, "3");
         SetFeature(edition.Id, AppFeatures.HasAdvancedReports, "false");
         SetFeature(edition.Id, AppFeatures.HasApiAccess, "false");
@@ -43,7 +42,6 @@ public class DefaultEditionCreator
     {
         var edition = GetOrCreateEdition("Starter", "Starter Plan", monthlyPrice: 599m, annualPrice: 5990m, trialDays: null);
         SetFeature(edition.Id, AppFeatures.MaxUserCount, "5");
-        SetFeature(edition.Id, AppFeatures.MaxBranchCount, "3");
         SetFeature(edition.Id, AppFeatures.MaxTransactionEntries, "0");
         SetFeature(edition.Id, AppFeatures.HasAdvancedReports, "true");
         SetFeature(edition.Id, AppFeatures.HasApiAccess, "false");
@@ -54,7 +52,6 @@ public class DefaultEditionCreator
     {
         var edition = GetOrCreateEdition("Business", "Business Plan", monthlyPrice: 1499m, annualPrice: 14990m, trialDays: null);
         SetFeature(edition.Id, AppFeatures.MaxUserCount, "0");
-        SetFeature(edition.Id, AppFeatures.MaxBranchCount, "0");
         SetFeature(edition.Id, AppFeatures.MaxTransactionEntries, "0");
         SetFeature(edition.Id, AppFeatures.HasAdvancedReports, "true");
         SetFeature(edition.Id, AppFeatures.HasApiAccess, "true");

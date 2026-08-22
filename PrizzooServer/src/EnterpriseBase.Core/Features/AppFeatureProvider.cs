@@ -27,18 +27,6 @@ namespace EnterpriseBase.Features
             };
 
             context.Create(
-                AppFeatures.MaxBranchCount,
-                defaultValue: "-1",
-                displayName: L("MaximumBranchCount"),
-                description: L("MaximumBranchCount_Description"),
-                inputType: new SingleLineStringInputType(new NumericValueValidator(0, int.MaxValue))
-            )[FeatureMetadata.CustomFeatureKey] = new FeatureMetadata
-            {
-                ValueTextNormalizer = value => value == "0" ? L("Unlimited") : new FixedLocalizableString(value),
-                IsVisibleOnPricingTable = true
-            };
-
-            context.Create(
                 AppFeatures.MaxTransactionEntries,
                 defaultValue: "-1",
                 displayName: L("MaximumTransactionEntries"),

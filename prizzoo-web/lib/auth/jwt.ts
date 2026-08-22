@@ -1,7 +1,7 @@
-// Minimal JWT payload decode - just enough to read the role claim so the
-// login form can route Admin vs ShopOwner to the right portal. Not used for
+// Minimal JWT payload decode - just enough to read the role claim so the UI
+// can show admin-only affordances (see AuthContext's isAdmin). Not used for
 // any security decision (the backend enforces [AbpAuthorize] independently),
-// only for UI navigation.
+// only for UI navigation/visibility.
 const ROLE_CLAIM = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
 
 export function decodeJwtRoles(token: string): string[] {

@@ -13,7 +13,7 @@ import styles from "./AdminModerationQueue.module.css";
 
 export function AdminPriceModerationQueue() {
   const router = useRouter();
-  const { isAuthenticated, isReady } = useAuth();
+  const { isAuthenticated, isAdmin, isReady } = useAuth();
   const [prices, setPrices] = useState<PendingPrice[] | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -22,9 +22,11 @@ export function AdminPriceModerationQueue() {
 
   useEffect(() => {
     if (isReady && !isAuthenticated) {
-      router.replace("/login");
+      router.replace("/phone-entry");
+    } else if (isReady && isAuthenticated && !isAdmin) {
+      router.replace("/home");
     }
-  }, [isReady, isAuthenticated, router]);
+  }, [isReady, isAuthenticated, isAdmin, router]);
 
   useEffect(() => {
     if (!isReady || !isAuthenticated) return;
@@ -46,7 +48,7 @@ export function AdminPriceModerationQueue() {
     }
   }
 
-  if (!isReady || !isAuthenticated) {
+  if (!isReady || !isAuthenticated || !isAdmin) {
     return null;
   }
 
@@ -57,8 +59,7 @@ export function AdminPriceModerationQueue() {
       </button>
       <h1 className={styles.heading}>Price submissions</h1>
       <p className={styles.subheading}>
-        A rejection note is sent to the shop owner (WhatsApp integration is stubbed for now -
-        it&apos;s logged on the server instead).
+        Approve, flag, or reject prices submitted for review.
       </p>
 
       {loading && <LoadingSpinner />}

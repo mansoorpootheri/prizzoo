@@ -1,9 +1,3 @@
-export interface AuthenticateRequest {
-  userNameOrEmailAddress: string;
-  password: string;
-  rememberClient: boolean;
-}
-
 export interface AuthenticateResponse {
   accessToken: string;
   encryptedAccessToken: string;
@@ -66,6 +60,23 @@ export interface HomeFeedSection {
   items: StorePriceResult[];
 }
 
+export interface AdminUser {
+  id: number;
+  phoneNumber: string | null;
+  creationTime: string;
+}
+
+export interface AddAdminInput {
+  phoneNumber: string;
+}
+
+export interface RegisteredUser {
+  id: number;
+  phoneNumber: string | null;
+  creationTime: string;
+  isActive: boolean;
+}
+
 export interface RequestOtpInput {
   phoneNumber: string;
 }
@@ -77,7 +88,7 @@ export interface VerifyOtpInput {
 
 // Host admin creates the shop AND its owner login in one action - there is
 // no self-service retailer signup. See StoreAppService.CreateAsync.
-export interface CreateStoreWithOwnerInput {
+export interface CreateStoreInput {
   name: string;
   address?: string;
   city?: string;
@@ -90,10 +101,6 @@ export interface CreateStoreWithOwnerInput {
   openingHours?: string;
   categoryTags?: string;
   imageId?: string;
-  ownerName: string;
-  ownerSurname?: string;
-  ownerEmail: string;
-  ownerPhoneNumber?: string;
 }
 
 export interface UpdateMyStoreInput {
@@ -108,7 +115,7 @@ export interface UpdateMyStoreInput {
   imageId?: string;
 }
 
-export interface MyStore {
+export interface AdminStoreDetail {
   id: string;
   name: string;
   address: string | null;
@@ -127,16 +134,6 @@ export interface MyStore {
   isActive: boolean;
   imageId: string | null;
 }
-
-// Response from Store/Create - only that call ever populates
-// ownerTemporaryPassword, and only once, for the admin to relay manually.
-export interface CreatedStore extends MyStore {
-  ownerTemporaryPassword: string | null;
-}
-
-// Admin store list/detail view - same shape as MyStore (ShopOwner's own
-// store) since both come from the same StoreDto on the backend.
-export type AdminStoreDetail = MyStore;
 
 export interface UpdateStoreInput {
   id: string;
@@ -197,16 +194,23 @@ export interface CreateEditCategoryInput {
   isActive: boolean;
 }
 
-export interface CreateProductInput {
+export interface AdminUnit {
+  id: string;
   name: string;
-  barcode?: string;
-  description?: string;
-  categoryId?: string;
-  unitId?: string;
-  imageId?: string;
+  code: string;
+  decimalPlaces: number;
+  isActive: boolean;
 }
 
-export interface MyProduct {
+export interface CreateEditUnitInput {
+  id?: string;
+  name: string;
+  code: string;
+  decimalPlaces: number;
+  isActive: boolean;
+}
+
+export interface AdminProduct {
   id: string;
   name: string;
   barcode: string | null;
@@ -219,6 +223,17 @@ export interface MyProduct {
   isActive: boolean;
 }
 
+export interface CreateEditProductInput {
+  id?: string;
+  name: string;
+  barcode?: string;
+  description?: string;
+  categoryId?: string;
+  unitId?: string;
+  imageId?: string;
+  isActive: boolean;
+}
+
 export interface SubmitPriceInput {
   productId: string;
   storeId: string;
@@ -227,13 +242,34 @@ export interface SubmitPriceInput {
   proofImageId?: string;
 }
 
-// Shop owner: no storeId - the server always resolves the caller's own
-// store, so a shop owner can never submit a price for a store they don't own.
-export interface SubmitMyPriceInput {
+// Matches EnterpriseBase.Pricing.PriceSource - sent/received as the raw
+// numeric value on the wire, same convention as PriceStatus above.
+export enum PriceSourceKind {
+  RetailerReported = 1,
+  Crowdsourced = 2,
+  OndcFeed = 3,
+  FieldCollected = 4,
+  Flyer = 5,
+}
+
+export interface AdminPrice {
+  id: string;
   productId: string;
+  productName: string;
+  storeId: string;
+  storeName: string;
+  amount: number;
+  originalAmount: number | null;
+  status: PriceStatus;
+  source: PriceSourceKind;
+  observedAt: string;
+}
+
+export interface UpdatePriceInput {
+  id: string;
   amount: number;
   originalAmount?: number;
-  proofImageId?: string;
+  status: PriceStatus;
 }
 
 export interface RateProductInput {
@@ -244,17 +280,6 @@ export interface RateProductInput {
 export interface MyProductRating {
   productId: string;
   stars: number | null;
-}
-
-export interface MyStoreProduct {
-  productId: string;
-  productName: string | null;
-  categoryName: string | null;
-  unitName: string | null;
-  imageId: string | null;
-  latestPriceAmount: number | null;
-  latestPriceStatus: PriceStatus | null;
-  latestPriceObservedAt: string | null;
 }
 
 export interface PendingPrice {
