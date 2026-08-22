@@ -53,6 +53,7 @@ public class EnterpriseBaseDbContext : AbpZeroDbContext<Tenant, Role, User, Ente
     public virtual DbSet<Price> Prices { get; set; }
     public virtual DbSet<ProductRating> ProductRatings { get; set; }
     public virtual DbSet<Location> Locations { get; set; }
+    public virtual DbSet<Flyer> Flyers { get; set; }
 
     public EnterpriseBaseDbContext(DbContextOptions<EnterpriseBaseDbContext> options)
         : base(options)
@@ -142,6 +143,30 @@ public class EnterpriseBaseDbContext : AbpZeroDbContext<Tenant, Role, User, Ente
         modelBuilder.Entity<ProductRating>()
             .HasIndex(x => new { x.ProductId, x.ShopperUserId })
             .IsUnique();
+
+        modelBuilder.Entity<Flyer>()
+            .HasOne(x => x.Store)
+            .WithMany()
+            .HasForeignKey(x => x.StoreId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Flyer>()
+            .HasOne(x => x.Image)
+            .WithMany()
+            .HasForeignKey(x => x.ImageId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Flyer>()
+            .HasIndex(x => x.StoreId);
+
+        modelBuilder.Entity<Price>()
+            .HasOne(x => x.Flyer)
+            .WithMany()
+            .HasForeignKey(x => x.FlyerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Price>()
+            .HasIndex(x => x.FlyerId);
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {

@@ -64,6 +64,9 @@ namespace EnterpriseBase.Application.Pricing.Dto
         /// <summary>Browse everything one specific store sells - the home screen's retailer strip. See ProductKeyword.</summary>
         public Guid? StoreId { get; set; }
 
+        /// <summary>Browse just the items typed in alongside one specific flyer - tapping a flyer carousel slide. See ProductKeyword.</summary>
+        public Guid? FlyerId { get; set; }
+
         [Required]
         public decimal Latitude { get; set; }
 

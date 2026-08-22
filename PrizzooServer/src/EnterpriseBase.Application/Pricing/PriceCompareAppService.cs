@@ -78,33 +78,57 @@ namespace EnterpriseBase.Application.Pricing
 
         public virtual async Task<List<StorePriceResultDto>> ComparePricesAsync(ComparePricesInputDto input)
         {
-            var candidates = await GetCandidatesInBoundingBoxAsync(input.Latitude, input.Longitude, input.RadiusKm,
-                query =>
-                {
-                    if (!string.IsNullOrWhiteSpace(input.ProductKeyword))
+            // A flyer click needs to reliably show that flyer's own items
+            // regardless of distance - GetRecentFlyersAsync (home screen's
+            // all-stores carousel) isn't geo-scoped, so a flyer from outside
+            // the shopper's radius could be on screen; silently returning
+            // zero results for a valid tap would be confusing. Bypass the
+            // bounding-box/radius filtering entirely in that case.
+            List<EnterpriseBase.Pricing.Price> candidates;
+            if (input.FlyerId.HasValue)
+            {
+                candidates = await _priceRepository.GetAll()
+                    .Include(x => x.Product).ThenInclude(p => p.Category)
+                    .Include(x => x.Store)
+                    .Where(x => x.Status == EnterpriseBase.Pricing.PriceStatus.Approved)
+                    .Where(x => x.Store.IsActive)
+                    .Where(x => x.Product.IsActive)
+                    .Where(x => x.FlyerId == input.FlyerId.Value)
+                    .ToListAsync();
+            }
+            else
+            {
+                candidates = await GetCandidatesInBoundingBoxAsync(input.Latitude, input.Longitude, input.RadiusKm,
+                    query =>
                     {
-                        var keyword = input.ProductKeyword.ToLower();
-                        query = query.Where(x => x.Product.Name.ToLower().Contains(keyword));
-                    }
+                        if (!string.IsNullOrWhiteSpace(input.ProductKeyword))
+                        {
+                            var keyword = input.ProductKeyword.ToLower();
+                            query = query.Where(x => x.Product.Name.ToLower().Contains(keyword));
+                        }
 
-                    if (!string.IsNullOrWhiteSpace(input.CategoryName))
-                    {
-                        var categoryName = input.CategoryName.ToLower();
-                        query = query.Where(x => x.Product.Category != null && x.Product.Category.Name.ToLower() == categoryName);
-                    }
+                        if (!string.IsNullOrWhiteSpace(input.CategoryName))
+                        {
+                            var categoryName = input.CategoryName.ToLower();
+                            query = query.Where(x => x.Product.Category != null && x.Product.Category.Name.ToLower() == categoryName);
+                        }
 
-                    if (input.StoreId.HasValue)
-                    {
-                        query = query.Where(x => x.StoreId == input.StoreId.Value);
-                    }
+                        if (input.StoreId.HasValue)
+                        {
+                            query = query.Where(x => x.StoreId == input.StoreId.Value);
+                        }
 
-                    return query;
-                });
+                        return query;
+                    });
+            }
 
             var results = await BuildResultDtosAsync(candidates, input.Latitude, input.Longitude);
 
-            return results
-                .Where(x => x.DistanceKm <= input.RadiusKm)
+            var filtered = input.FlyerId.HasValue
+                ? results.AsEnumerable()
+                : results.Where(x => x.DistanceKm <= input.RadiusKm);
+
+            return filtered
                 .OrderBy(x => x.Amount)
                 .ThenBy(x => x.DistanceKm)
                 .Take(input.MaxResults)

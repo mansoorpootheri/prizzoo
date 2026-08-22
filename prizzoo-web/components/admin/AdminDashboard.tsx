@@ -42,6 +42,9 @@ export function AdminDashboard() {
         <a className={styles.linkCard} href="/admin/moderation/prices">
           Price moderation queue
         </a>
+        <a className={styles.linkCard} href="/admin/flyers/new">
+          Upload a flyer for a store
+        </a>
         <a className={styles.linkCard} href="/admin/categories">
           Category master
         </a>

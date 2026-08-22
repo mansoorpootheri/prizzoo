@@ -3,6 +3,7 @@ using System;
 using EnterpriseBase.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EnterpriseBase.Migrations
 {
     [DbContext(typeof(EnterpriseBaseDbContext))]
-    partial class EnterpriseBaseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260820161550_AddFlyerAndFlyerItem")]
+    partial class AddFlyerAndFlyerItem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2575,6 +2578,9 @@ namespace EnterpriseBase.Migrations
                     b.Property<long?>("LastModifierUserId")
                         .HasColumnType("bigint");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("StoreId")
                         .HasColumnType("uuid");
 
@@ -2588,9 +2594,78 @@ namespace EnterpriseBase.Migrations
 
                     b.HasIndex("ImageId");
 
-                    b.HasIndex("StoreId");
+                    b.HasIndex("StoreId", "Status");
 
                     b.ToTable("Flyers");
+                });
+
+            modelBuilder.Entity("EnterpriseBase.Pricing.FlyerItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp");
+
+                    b.Property<long?>("CreatorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("DeleterUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("timestamp");
+
+                    b.Property<string>("ExtractedName")
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("ExtractedPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("FlyerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("HeightPct")
+                        .HasColumnType("decimal(6,3)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp");
+
+                    b.Property<long?>("LastModifierUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid?>("MatchedProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ModerationNote")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("ResultingPriceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("WidthPct")
+                        .HasColumnType("decimal(6,3)");
+
+                    b.Property<decimal>("XPct")
+                        .HasColumnType("decimal(6,3)");
+
+                    b.Property<decimal>("YPct")
+                        .HasColumnType("decimal(6,3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FlyerId");
+
+                    b.HasIndex("MatchedProductId");
+
+                    b.ToTable("FlyerItems");
                 });
 
             modelBuilder.Entity("EnterpriseBase.Pricing.Price", b =>
@@ -2616,9 +2691,6 @@ namespace EnterpriseBase.Migrations
 
                     b.Property<DateTime?>("DeletionTime")
                         .HasColumnType("timestamp");
-
-                    b.Property<Guid?>("FlyerId")
-                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -2657,8 +2729,6 @@ namespace EnterpriseBase.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("FlyerId");
 
                     b.HasIndex("StoreId");
 
@@ -3367,13 +3437,26 @@ namespace EnterpriseBase.Migrations
                     b.Navigation("Store");
                 });
 
-            modelBuilder.Entity("EnterpriseBase.Pricing.Price", b =>
+            modelBuilder.Entity("EnterpriseBase.Pricing.FlyerItem", b =>
                 {
                     b.HasOne("EnterpriseBase.Pricing.Flyer", "Flyer")
                         .WithMany()
                         .HasForeignKey("FlyerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EnterpriseBase.MasterData.Product", "MatchedProduct")
+                        .WithMany()
+                        .HasForeignKey("MatchedProductId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.Navigation("Flyer");
+
+                    b.Navigation("MatchedProduct");
+                });
+
+            modelBuilder.Entity("EnterpriseBase.Pricing.Price", b =>
+                {
                     b.HasOne("EnterpriseBase.MasterData.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
@@ -3385,8 +3468,6 @@ namespace EnterpriseBase.Migrations
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Flyer");
 
                     b.Navigation("Product");
 

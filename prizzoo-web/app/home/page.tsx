@@ -7,13 +7,14 @@ import { useGeolocation } from "@/lib/geolocation/useGeolocation";
 import { useComparePrices } from "@/lib/hooks/useComparePrices";
 import { useHomeFeed } from "@/lib/hooks/useHomeFeed";
 import { getActiveCategories } from "@/lib/api/priceCompare";
+import { getFlyersForStore, getRecentFlyers } from "@/lib/api/flyer";
 import { homeFeedSectionId } from "@/lib/utils/slugify";
-import type { StorePriceResult } from "@/lib/api/types";
+import type { FlyerDetail, StorePriceResult } from "@/lib/api/types";
 import { LocationBar } from "@/components/home/LocationBar";
 import { TopTabBar, type TopTab, type SortMode } from "@/components/home/TopTabBar";
 import { BottomNav } from "@/components/home/BottomNav";
-import { SpotlightCarousel } from "@/components/home/SpotlightCarousel";
 import { RetailerStrip, type Retailer } from "@/components/home/RetailerStrip";
+import { StoreFlyerBanner } from "@/components/home/StoreFlyerBanner";
 import { HomeFeed } from "@/components/home/HomeFeed";
 import { ResultsList } from "@/components/common/ResultsList";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -23,10 +24,13 @@ export default function Page() {
   const router = useRouter();
   const { isAuthenticated, isReady, logout } = useAuth();
   const { coordinates, isLocating, isFallback } = useGeolocation();
-  const { data, loading, error, search, searchByStore } = useComparePrices();
+  const { data, loading, error, search, searchByStore, searchByFlyer } = useComparePrices();
   const { data: feedSections, loading: feedLoading, error: feedError, load: loadFeed } = useHomeFeed();
   const [sortMode, setSortMode] = useState<SortMode>("all");
   const [hasSearched, setHasSearched] = useState(false);
+  const [storeFlyers, setStoreFlyers] = useState<FlyerDetail[]>([]);
+  const [homeFlyers, setHomeFlyers] = useState<FlyerDetail[]>([]);
+  const [selectedFlyerId, setSelectedFlyerId] = useState<string | null>(null);
   const [categoryChips, setCategoryChips] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<TopTab>("home");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -49,6 +53,15 @@ export default function Page() {
   }, [isReady, isAuthenticated]);
 
   useEffect(() => {
+    if (!isReady || !isAuthenticated) return;
+    getRecentFlyers()
+      .then(setHomeFlyers)
+      .catch(() => {
+        // No home-screen flyer carousel is a fine fallback, not worth surfacing an error for.
+      });
+  }, [isReady, isAuthenticated]);
+
+  useEffect(() => {
     if (!isReady || !isAuthenticated || isLocating) return;
     void loadFeed(coordinates);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -61,6 +74,8 @@ export default function Page() {
 
   function runSearch(keyword: string) {
     setHasSearched(true);
+    setStoreFlyers([]);
+    setSelectedFlyerId(null);
     void search(keyword, coordinates);
   }
 
@@ -73,6 +88,8 @@ export default function Page() {
   // instead, before we look up the target id.
   function jumpToCategory(categoryName: string) {
     setHasSearched(false);
+    setStoreFlyers([]);
+    setSelectedFlyerId(null);
     const id = homeFeedSectionId(categoryName);
     setTimeout(() => {
       document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -81,12 +98,34 @@ export default function Page() {
 
   function runStoreSearch(retailer: Retailer) {
     setHasSearched(true);
+    setSelectedFlyerId(null);
     void searchByStore(retailer.storeId, coordinates);
+    getFlyersForStore(retailer.storeId)
+      .then(setStoreFlyers)
+      .catch(() => setStoreFlyers([])); // no flyer banner is a fine fallback, not worth surfacing an error for
+  }
+
+  // Selecting a flyer shows its items inline, no separate page/navigation
+  // needed. From the home screen's all-stores carousel this is additive -
+  // it does NOT switch into "search mode" (hasSearched stays false), so
+  // the flyer's items appear above the normal home feed (Top Picks etc.)
+  // rather than replacing it, same as the main home layout always looks.
+  // From within an already-selected store's own results (hasSearched
+  // already true), it keeps narrowing the existing results view instead,
+  // which is unchanged from before.
+  function selectFlyer(flyer: FlyerDetail) {
+    setSelectedFlyerId(flyer.id);
+    void searchByFlyer(flyer.id, coordinates);
+    getFlyersForStore(flyer.storeId)
+      .then(setStoreFlyers)
+      .catch(() => setStoreFlyers([]));
   }
 
   function goHome() {
     setActiveTab("home");
     setHasSearched(false);
+    setStoreFlyers([]);
+    setSelectedFlyerId(null);
   }
 
   const sortedData = useMemo<StorePriceResult[] | null>(() => {
@@ -162,22 +201,36 @@ export default function Page() {
         ) : (
           <>
             <RetailerStrip retailers={retailers} onSelect={runStoreSearch} />
-            {/* <SpotlightCarousel /> */}
             {hasSearched ? (
-              <ResultsList
-                data={sortedData}
-                loading={loading}
-                error={error}
-                emptyMessage="No prices found for that search yet."
-                onSelect={handleSelect}
-              />
+              <>
+                <StoreFlyerBanner flyers={storeFlyers} onSelect={selectFlyer} />
+                <ResultsList
+                  data={sortedData}
+                  loading={loading}
+                  error={error}
+                  emptyMessage="No prices found for that search yet."
+                  onSelect={handleSelect}
+                />
+              </>
             ) : (
-              <HomeFeed
-                sections={feedSections}
-                loading={feedLoading}
-                error={feedError}
-                onSelect={handleSelect}
-              />
+              <>
+                <StoreFlyerBanner flyers={homeFlyers} onSelect={selectFlyer} />
+                {selectedFlyerId && (
+                  <ResultsList
+                    data={sortedData}
+                    loading={loading}
+                    error={error}
+                    emptyMessage="No items listed for that flyer yet."
+                    onSelect={handleSelect}
+                  />
+                )}
+                <HomeFeed
+                  sections={feedSections}
+                  loading={feedLoading}
+                  error={feedError}
+                  onSelect={handleSelect}
+                />
+              </>
             )}
           </>
         )}

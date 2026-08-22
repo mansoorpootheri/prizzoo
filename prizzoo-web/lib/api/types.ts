@@ -19,6 +19,7 @@ export interface ComparePricesInput {
   productKeyword?: string;
   categoryName?: string;
   storeId?: string;
+  flyerId?: string;
   latitude: number;
   longitude: number;
   radiusKm?: number;
@@ -277,4 +278,46 @@ export enum PriceStatus {
 export interface PagedResult<T> {
   items: T[];
   totalCount: number;
+}
+
+export interface FlyerLineItemInput {
+  // Exactly one of productId or name must be set: productId picks an
+  // existing catalog product directly; name (+ optional categoryId)
+  // creates a new one, or reuses an exact case-insensitive name match.
+  productId?: string;
+  name?: string;
+  categoryId?: string;
+  price: number;
+  originalAmount?: number;
+}
+
+export interface CreateFlyerForStoreInput {
+  storeId: string;
+  imageId: string;
+  items: FlyerLineItemInput[];
+}
+
+export interface Flyer {
+  id: string;
+  storeId: string;
+  imageId: string;
+  uploadedAt: string;
+  itemCount: number;
+}
+
+export interface FlyerLineItemResult {
+  productName: string;
+  amount: number;
+  originalAmount: number | null;
+}
+
+// Live view of a store's flyer - the photo plus every item typed in
+// alongside it, each a real (Approved) Price row. See
+// FlyerAppService.GetLiveFlyerForStoreAsync.
+export interface FlyerDetail {
+  id: string;
+  storeId: string;
+  storeName: string | null;
+  imageId: string;
+  items: FlyerLineItemResult[];
 }

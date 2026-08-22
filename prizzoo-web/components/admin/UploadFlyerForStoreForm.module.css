@@ -1,0 +1,104 @@
+/* This admin page deliberately breaks out of the app's usual 480px mobile
+   shell (see app/globals.css's .appShell comment) - it's a back-office
+   form, not part of the shopper mobile experience, and benefits from
+   seeing the flyer photo and the item list side by side on wider screens. */
+.page {
+  width: 100%;
+  max-width: 1100px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: var(--color-bg);
+  padding: 24px 20px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--color-foreground-muted);
+  font-size: 12px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.heading {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-foreground);
+}
+
+.subheading {
+  margin-top: -12px;
+  font-size: 12px;
+  color: var(--color-foreground-muted);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 860px) {
+  .layout {
+    grid-template-columns: minmax(280px, 420px) 1fr;
+    align-items: start;
+  }
+}
+
+.left,
+.right {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.preview {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.itemCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.itemCardTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.itemCardTop select {
+  flex: 1;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.itemRow input,
+.itemRow select {
+  flex: 1;
+  min-width: 0;
+}

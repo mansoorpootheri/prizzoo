@@ -12,7 +12,9 @@ namespace EnterpriseBase.Pricing
         RetailerReported = 1,
         Crowdsourced = 2,
         OndcFeed = 3,
-        FieldCollected = 4
+        FieldCollected = 4,
+        /// <summary>Hand-typed by an admin alongside a flyer photo upload (see FlyerAppService.CreateFlyerForStoreAsync) - no OCR/AI involved, despite the historical enum name matching the value this predates.</summary>
+        Flyer = 5
     }
 
     public enum PriceStatus
@@ -83,5 +85,10 @@ namespace EnterpriseBase.Pricing
         public DateTime ObservedAt { get; set; } = DateTime.UtcNow;
 
         public string ModerationNote { get; set; }
+
+        /// <summary>Set when this price came from a flyer upload (Source == PriceSource.Flyer) - which flyer photo it was typed in alongside. Null for every other source.</summary>
+        public Guid? FlyerId { get; set; }
+        [ForeignKey("FlyerId")]
+        public virtual Flyer Flyer { get; set; }
     }
 }

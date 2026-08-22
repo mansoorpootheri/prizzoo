@@ -16,7 +16,9 @@ interface RetailerStripProps {
 // The reference design's row of retailer logos. Built from real Store data
 // (deduped from whatever's already in the home feed, not a fake merchant
 // list) - tapping a logo browses everything that store sells, via the same
-// ComparePrices endpoint's StoreId filter used by the category chips.
+// ComparePrices endpoint's StoreId filter used by the category chips. If
+// that store has a flyer, it surfaces automatically above the results (see
+// StoreFlyerBanner in app/home/page.tsx) - no separate flyer control here.
 export function RetailerStrip({ retailers, onSelect }: RetailerStripProps) {
   if (retailers.length === 0) return null;
 

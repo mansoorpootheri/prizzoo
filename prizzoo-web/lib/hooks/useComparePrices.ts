@@ -17,6 +17,8 @@ interface UseComparePricesResult {
   searchByCategory: (categoryName: string, coordinates: Coordinates, maxResults?: number) => Promise<void>;
   // Retailer strip browsing - everything one specific store sells.
   searchByStore: (storeId: string, coordinates: Coordinates, maxResults?: number) => Promise<void>;
+  // Flyer carousel browsing - just the items typed in alongside one flyer.
+  searchByFlyer: (flyerId: string, coordinates: Coordinates, maxResults?: number) => Promise<void>;
 }
 
 export function useComparePrices(): UseComparePricesResult {
@@ -26,7 +28,7 @@ export function useComparePrices(): UseComparePricesResult {
 
   const runCompare = useCallback(
     async (
-      input: { productKeyword?: string; categoryName?: string; storeId?: string },
+      input: { productKeyword?: string; categoryName?: string; storeId?: string; flyerId?: string },
       coordinates: Coordinates,
       maxResults = 20
     ) => {
@@ -68,5 +70,11 @@ export function useComparePrices(): UseComparePricesResult {
     [runCompare]
   );
 
-  return { data, loading, error, search, searchByCategory, searchByStore };
+  const searchByFlyer = useCallback(
+    (flyerId: string, coordinates: Coordinates, maxResults?: number) =>
+      runCompare({ flyerId }, coordinates, maxResults),
+    [runCompare]
+  );
+
+  return { data, loading, error, search, searchByCategory, searchByStore, searchByFlyer };
 }

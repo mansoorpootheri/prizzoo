@@ -50,3 +50,9 @@ export function createOrEditLocation(input: CreateEditLocationInput): Promise<vo
 export function deleteLocation(id: string): Promise<void> {
   return fetchJson<void>(`${LOCATION_BASE}/Delete?Id=${encodeURIComponent(id)}`, { method: "DELETE" });
 }
+
+// Host admin only (Pages_Products) - the full active catalog, for the
+// flyer form's "pick an existing product" option per item row.
+export function getProductsForCombobox(): Promise<ComboboxItem[]> {
+  return fetchJson<ComboboxItem[]>("/api/services/app/Product/GetForCombobox");
+}
